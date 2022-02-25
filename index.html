@@ -1,0 +1,98 @@
+<html>
+    <head>
+        <title>Instant Markdown</title>
+        <style>
+            div.h1 {
+                font-size: 200%;
+                font-weight: bold;
+                margin-top: 20pt;
+                margin-bottom: 5pt;
+                border-bottom: 1px solid #ccc;
+            }
+            div.h2 {
+                font-size: 160%;
+                font-weight: bold;
+                margin-top: 10pt;
+                margin-bottom: 4pt;
+                border-bottom: 1px solid #eee;
+            }
+            div.h3 {
+                font-size: 140%;
+                font-weight: bold;
+                margin-top: 5pt;
+                margin-bottom: 4pt;
+            }
+            div.quote {
+                margin-left: 5pt;
+                border-left: 1px solid gray;
+                padding-left: 10pt;
+            }
+            div.hr {
+                display: flex;
+            }
+            div.hr::after {
+                content: ' ';
+                border-bottom: 1px solid gray;
+                flex-grow: 1;
+                height: 0.6em;
+                margin-left: 10pt;
+            }
+        </style>
+        <script>
+            function init() {
+                document.body.addEventListener('input', e =>
+                {
+                    let sel = window.getSelection();
+                    let textNode = sel.anchorNode
+                    if (!textNode) return;
+                    let div = (textNode.nodeType == Node.TEXT_NODE) ? textNode.parentNode : textNode; // new line or not
+
+                    // console.log(e);
+                    // console.log(textNode);
+                    // console.log(div);
+                    console.log(markdown());
+                    console.log('');
+
+                    lineStyle(div);
+                });
+            }
+            function lineStyle(div) {
+                div.className = '';
+                let t = div.innerText;
+                if (lineStart(t, '#')) {
+                    div.className = 'h1';
+                }
+                else if (lineStart(t, '##')) {
+                    div.className = 'h2';
+                }
+                else if (lineStart(t, '###')) {
+                    div.className = 'h3';
+                }
+                else if (lineStart(t, '>')) {
+                    div.className = 'quote';
+                }
+                else if (t == '---') {
+                    div.className = 'hr';
+                }
+            }
+            function lineStart(line, start, followedBySpace = true) {
+                return line.startsWith(start) && ((!followedBySpace) || line.startsWith(start + ' ') || line.startsWith(start + '\xa0') || line.startsWith(start + '&nbsp;'));
+            }
+            function markdown() {
+                let lines = [];
+                document.body.childNodes.forEach(lineDiv => {
+                    // console.log(line);
+                    if (lineDiv.nodeType == Node.ELEMENT_NODE) {
+                        // console.log(line.outerHTML);
+                        lines.push(markdownLine(lineDiv));
+                    }
+                });
+                return lines.join('\n\n');
+            }
+            function markdownLine(lineDiv) {
+                return (new DOMParser()).parseFromString(lineDiv.outerHTML.replace(/<br *\/?>/, '\n'), 'text/html').body.firstChild.textContent;//.replace('\n', '<br />');
+            }
+        </script>
+    </head>
+    <body contenteditable="true" onload="init()"><div>Start here...</div></body>
+</html>
