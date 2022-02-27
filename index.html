@@ -94,6 +94,7 @@
             let formats_listItem = formats_all.filter(f => f.listItem);
 
             let sections = [];
+            let selection = { section: null };
             function init()
             {
                 input = document.querySelector('#input');
@@ -174,8 +175,27 @@
                         }
                         display.appendChild(section.div);
                     });
+                    selection.section = null;
+                    updateSelection();
                 });
                 input.dispatchEvent(new Event('input'));
+            }
+            function updateSelection()
+            {
+                if (selection.section) {
+                    selection.section.div.classList.remove('current');
+                }
+                let selStart = input.selectionStart;
+                for (s in sections) {
+                    let section = sections[s];
+                    if (section.pos > selStart) {
+                        selection.section = sections[s - 1];
+                        selection.section.div.classList.add('current');
+                        return;
+                    }
+                }
+                selection.section = sections.last();
+                selection.section.div.classList.add('current');
             }
             function getLineFormat(line, formatsToCheck = null)
             {
