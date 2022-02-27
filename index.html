@@ -97,15 +97,16 @@
                 display = document.querySelector('#display');
                 input.addEventListener('input', e =>
                 {
-                    // let sel = window.getSelection();
-                    // console.log(sel);
-
                     sections = [];
-                    let newSection = values => Object.assign({ format: formats.default, innerContent: [], outerContent: [] }, values);
+                    let position = 0;
+                    let newSection = values => Object.assign({ pos: position, format: formats.default, innerContent: [], outerContent: [] }, values);
                     let lines = input.value.split('\n');
 
+                    // if (e.inputType === 'insertLineBreak') {}
+
                     let startNewSection = true;
-                    lines.forEach(line => {
+                    lines.forEach(line =>
+                    {
                         // empty line
                         if (line.trim() === '') {
                             if (!sections.length)
@@ -120,7 +121,6 @@
                             let prevFormat = prevSection ? prevSection.format : null;
                             // formatted
                             if (format !== formats.default) {
-                                console.log(format, prevSection);
                                 if (format.listItem && prevFormat && prevFormat.listItem)
                                     prevSection.innerContent.push([line]);
                                 else
@@ -138,35 +138,39 @@
                                 startNewSection = false;
                             }
                         }
+                        position += 1 + line.length;
                     });
-                    let divs = [];
                     console.log(sections);
+                    display.innerHTML = '';
                     sections.forEach(section =>
                     {
                         let format = section.format;
-                        let ot = format.outerTag;
-                        let it = format.innerTag;
-                        let innerContent = section.innerContent.length ?
-                            (ot ? '<' + ot + '>' : '') +
-                                '<' + it + '>' +
-                                section.innerContent
-                                    .map(line => line.join('<br />'))
-                                    .join('</' + it + '><' + it + '>') +
-                                '</' + it + '>' +
-                            (ot ? '</' + ot + '>' : '') : '';
-                        let dit = formats.default.innerTag;
-                        let outerContent = section.outerContent.length ?
-                            '<' + dit + '>' +
-                                section.outerContent.join('</' + dit + '><' + dit + '>') +
-                            '</' + dit + '>' : '';
-                        let className = (format.className !== 'default') ? ' class="' + format.className + '"' : '';
-                        divs.push(
-                            '<div' + className + '>' +
-                                innerContent +
-                                outerContent +
-                            '</div>');
+                        section.div = document.createElement('div');
+                        section.div.className = format.className;
+
+                        if (section.innerContent.length) {
+                            let container = section.div;
+                            if (format.outerTag) {
+                                container = document.createElement(format.outerTag);
+                                section.div.appendChild(container);
+                            }
+                            section.innerContent.forEach(lines =>
+                            {
+                                let tag = document.createElement(format.innerTag);
+                                tag.innerHTML = lines.join('<br />');
+                                container.appendChild(tag);
+                            });
+                        }
+                        if (section.outerContent.length) {
+                            section.outerContent.forEach(line =>
+                            {
+                                let tag = document.createElement(formats.default.innerTag);
+                                tag.innerHTML = line;
+                                section.div.appendChild(tag);
+                            });
+                        }
+                        display.appendChild(section.div);
                     });
-                    display.innerHTML = divs.join('');
                 });
                 input.dispatchEvent(new Event('input'));
             }
@@ -188,7 +192,7 @@
                 return formatsToCheck ? null : formats.default;
             }
             if (!Array.prototype.last) {
-                Array.prototype.last = function() { return this.length ? this[this.legnth - 1] : null };
+                Array.prototype.last = function() { return this.length ? this[this.length - 1] : null };
             }
         </script>
     </head>
