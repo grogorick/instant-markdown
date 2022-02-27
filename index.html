@@ -27,7 +27,9 @@
             .current {
                 background: #ff05;
             }
-
+            .current .current {
+                background: #fa05
+            }
 
             .h1 p:first-child {
                 font-size: 200%;
@@ -94,7 +96,7 @@
             let formats_listItem = formats_all.filter(f => f.listItem);
 
             let sections = [];
-            let selection = { section: null };
+            let selection = {};
             function init()
             {
                 input = document.querySelector('#input');
@@ -103,7 +105,7 @@
                 {
                     sections = [];
                     let position = 0;
-                    let newSection = values => Object.assign({ pos: position, format: formats.default, innerContent: [], outerContent: [] }, values);
+                    let newSection = values => Object.assign({ pos: position, outerPos: position, format: formats.default, innerContent: [], outerContent: [] }, values);
                     let lines = input.value.split('\n');
 
                     // if (e.inputType === 'insertLineBreak') {}
@@ -111,8 +113,11 @@
                     let startNewSection = true;
                     lines.forEach(line =>
                     {
+                        let nextPosition = position + 1 + line.length;
+                        line = { pos: position, text: line };
+
                         // empty line
-                        if (line.trim() === '') {
+                        if (line.text.trim() === '') {
                             if (!sections.length)
                                 sections.push(newSection({ outerContent: [line] }));
                             else
@@ -120,7 +125,7 @@
                             startNewSection = true;
                         }
                         else {
-                            let format = getLineFormat(line);
+                            let format = getLineFormat(line.text);
                             let prevSection = sections.length ? sections.last() : null;
                             let prevFormat = prevSection ? prevSection.format : null;
                             // formatted
@@ -129,7 +134,7 @@
                                     prevSection.innerContent.push([line]);
                                 else
                                     sections.push(newSection({ format: format, innerContent: [[line]] }));
-                                startNewSection = !!getLineFormat(line, formats_singleline);
+                                startNewSection = !!getLineFormat(line.text, formats_singleline);
                             }
                             // plain text
                             else {
@@ -141,61 +146,80 @@
                                     sections.last().innerContent.push([line]);
                                 startNewSection = false;
                             }
+                            sections.last().outerPos = nextPosition;
                         }
-                        position += 1 + line.length;
+                        position = nextPosition;
                     });
                     console.log(sections);
                     display.innerHTML = '';
                     sections.forEach(section =>
                     {
                         let format = section.format;
-                        section.div = document.createElement('div');
-                        section.div.className = format.className;
+                        section.htmlTag = document.createElement('div');
+                        section.htmlTag.className = format.className;
 
                         if (section.innerContent.length) {
-                            let container = section.div;
+                            let container = section.htmlTag;
                             if (format.outerTag) {
                                 container = document.createElement(format.outerTag);
-                                section.div.appendChild(container);
+                                section.htmlTag.appendChild(container);
                             }
                             section.innerContent.forEach(lines =>
                             {
                                 let tag = document.createElement(format.innerTag);
-                                tag.innerHTML = lines.join('<br />');
+                                tag.innerHTML = lines.map(l => l.text).join('<br />');
                                 container.appendChild(tag);
                             });
                         }
                         if (section.outerContent.length) {
-                            section.outerContent.forEach(line =>
-                            {
+                            for (l in section.outerContent) {
+                                let line = section.outerContent[l];
                                 let tag = document.createElement(formats.default.innerTag);
-                                tag.innerHTML = line;
-                                section.div.appendChild(tag);
-                            });
+                                tag.innerHTML = line.text;
+                                section.htmlTag.appendChild(tag);
+                                section.outerContent[l] = { line: line, htmlTag: tag };
+                            }
                         }
-                        display.appendChild(section.div);
+                        display.appendChild(section.htmlTag);
                     });
-                    selection.section = null;
+                    selection = {};
                     updateSelection();
                 });
                 input.dispatchEvent(new Event('input'));
             }
             function updateSelection()
             {
-                if (selection.section) {
-                    selection.section.div.classList.remove('current');
-                }
+                if (selection.section)
+                    selection.section.htmlTag.classList.remove('current');
+                if (selection.line)
+                    selection.line.htmlTag.classList.remove('current');
+
                 let selStart = input.selectionStart;
                 for (s in sections) {
                     let section = sections[s];
                     if (section.pos > selStart) {
                         selection.section = sections[s - 1];
-                        selection.section.div.classList.add('current');
-                        return;
+                        break;
                     }
                 }
-                selection.section = sections.last();
-                selection.section.div.classList.add('current');
+                if (!selection.section)
+                    selection.section = sections.last();
+                selection.section.htmlTag.classList.add('current');
+
+                if (selection.section.outerPos > selStart) {
+                }
+                else {
+                    for (o in selection.section.outerContent) {
+                        let oc = selection.section.outerContent[o];
+                        if (oc.line.pos > selStart) {
+                            selection.line = selection.section.outerContent[o - 1];
+                            break;
+                        }
+                    }
+                    if (!selection.line)
+                        selection.line = selection.section.outerContent.last();
+                    selection.line.htmlTag.classList.add('current');
+                }
             }
             function getLineFormat(line, formatsToCheck = null)
             {
