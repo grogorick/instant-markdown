@@ -14,8 +14,9 @@
             }
 
 
-            div, p {
+            div, p, ul, ol {
                 margin: 0;
+                padding: 0;
             }
             p:after {
                 content: '';
@@ -24,37 +25,43 @@
             }
 
 
-            div.h1 p:first-child {
+            .h1 p:first-child {
                 font-size: 200%;
                 font-weight: bold;
                 margin-top: 20pt;
                 margin-bottom: 5pt;
                 border-bottom: 1px solid #ccc;
             }
-            div.h2 p:first-child {
+            .h2 p:first-child {
                 font-size: 160%;
                 font-weight: bold;
                 margin-top: 10pt;
                 margin-bottom: 4pt;
                 border-bottom: 1px solid #eee;
             }
-            div.h3 p:first-child {
+            .h3 p:first-child {
                 font-size: 140%;
                 font-weight: bold;
                 margin-top: 5pt;
                 margin-bottom: 4pt;
             }
 
-            div.quote div {
-                margin-left: 5pt;
+            .quote div {
+                margin-left: 21pt;
+            }
+            .quote div {
+                padding-left: 9pt;
                 border-left: 1px solid gray;
-                padding-left: 10pt;
             }
 
-            div.hr {
+            .ul ul, .ol ol {
+                margin-left: 30pt;
+            }
+
+            .hr {
                 display: flex;
             }
-            div.hr::after {
+            .hr::after {
                 content: ' ';
                 border-bottom: 1px solid gray;
                 flex-grow: 1;
@@ -64,12 +71,12 @@
         </style>
         <script>
             let formats = {
-                default:{ },
+                default:{ multiline: true },
                 h1:     { start: '#' },
                 h2:     { start: '##' },
                 h3:     { start: '###' },
                 quote:  { start: '>', multiline: true, outerTag: 'div' },
-                ul:     { start: '-', multilineItem: true, outerTag: 'ul', innerTag: 'li' },
+                ul:     { start: '-', multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
                 hr:     { match: '---' }
             };
 
@@ -80,8 +87,8 @@
             }
 
             let formats_all = Object.values(formats);
-            let formats_multiline = formats_all.filter(f => f.multiline);
-            let formats_multilineItem = formats_all.filter(f => f.multilineItem);
+            let formats_singleline = formats_all.filter(f => !f.multiline);
+            let formats_listItem = formats_all.filter(f => f.listItem);
 
             let sections = [];
             function init()
@@ -94,10 +101,12 @@
                     // console.log(sel);
 
                     sections = [];
-                    let newSection = v => Object.assign({ format: formats.default, innerContent: [], outerContent: [] }, v);
+                    let newSection = values => Object.assign({ format: formats.default, innerContent: [], outerContent: [] }, values);
                     let lines = input.value.split('\n');
+
                     let startNewSection = true;
                     lines.forEach(line => {
+                        // empty line
                         if (line.trim() === '') {
                             if (!sections.length)
                                 sections.push(newSection({ outerContent: [line] }));
@@ -106,22 +115,26 @@
                             startNewSection = true;
                         }
                         else {
-                            let format = getLineFormat(line, formats_all);
+                            let format = getLineFormat(line);
+                            let prevSection = sections.length ? sections[sections.length - 1] : null;
+                            let prevFormat = prevSection ? prevSection.format : null;
+                            // formatted
                             if (format !== formats.default) {
-                                if (sections.length && formats_multilineItem.includes(format) && format === sections[sections.length - 1].format) {
-                                    sections[sections.length - 1].innerContent.push(line);
-                                    startNewSection = true;
-                                }
-                                else {
-                                    sections.push(newSection({ format: format, innerContent: [line] }));
-                                    startNewSection = getLineFormat(line, formats_multiline) === formats.default;
-                                }
-                            }
-                            else {
-                                if (startNewSection)
-                                    sections.push(newSection({ innerContent: [line] }));
+                                console.log(format, prevSection);
+                                if (format.listItem && prevFormat && prevFormat.listItem)
+                                    prevSection.innerContent.push([line]);
                                 else
-                                    sections[sections.length - 1].innerContent.push(line);
+                                    sections.push(newSection({ format: format, innerContent: [[line]] }));
+                                startNewSection = !!getLineFormat(line, formats_singleline);
+                            }
+                            // plain text
+                            else {
+                                if (prevFormat && prevFormat.listItem && !prevSection.outerContent.length)
+                                    prevSection.innerContent[prevSection.innerContent.length - 1].push(line);
+                                else if (startNewSection)
+                                    sections.push(newSection({ innerContent: [[line]] }));
+                                else
+                                    sections[sections.length - 1].innerContent.push([line]);
                                 startNewSection = false;
                             }
                         }
@@ -135,7 +148,11 @@
                         let it = format.innerTag;
                         let innerContent = section.innerContent.length ?
                             (ot ? '<' + ot + '>' : '') +
-                                '<' + it + '>' + section.innerContent.join('</' + it + '><' + it + '>') + '</' + it + '>' +
+                                '<' + it + '>' +
+                                section.innerContent
+                                    .map(line => line.join('<br />'))
+                                    .join('</' + it + '><' + it + '>') +
+                                '</' + it + '>' +
                             (ot ? '</' + ot + '>' : '') : '';
                         let dit = formats.default.innerTag;
                         let outerContent = section.outerContent.length ?
@@ -151,8 +168,9 @@
                     });
                     display.innerHTML = divs.join('');
                 });
+                input.dispatchEvent(new Event('input'));
             }
-            function getLineFormat(line, formatsArray)
+            function getLineFormat(line, formatsToCheck = null)
             {
                 let check = (line, format) =>
                     (format.match === line)
@@ -162,33 +180,17 @@
                                 || line.startsWith(format.start + '\xa0')
                                 || line.startsWith(format.start + '&nbsp;')));
 
+                let formatsArray = formatsToCheck || formats_all;
                 for (i in formatsArray) {
                     if (check(line, formatsArray[i]))
                         return formatsArray[i];
                 }
-                return formats.default;
+                return formatsToCheck ? null : formats.default;
             }
-            function lineStyle(div)
-            {
-                div.className = '';
-                let t = div.innerText;
-                if (lineStart(t, '#')) {
-                    div.className = 'h1';
-                }
-                else if (lineStart(t, '##')) {
-                    div.className = 'h2';
-                }
-                else if (lineStart(t, '###')) {
-                    div.className = 'h3';
-                }
-                else if (lineStart(t, '>')) {
-                    div.className = 'quote';
-                }
-                else if (t == '---') {
-                    div.className = 'hr';
-                }
+            if (!Array.prototype.last) {
+                Array.prototype.last = function() { return this.length ? this[this.legnth - 1] : null };
             }
         </script>
     </head>
-    <body onload="init()"><div id="display">Start here...</div><textarea id="input"></textarea></body>
+    <body onload="init()"><div id="display"></div><textarea id="input">Start here...</textarea></body>
 </html>
