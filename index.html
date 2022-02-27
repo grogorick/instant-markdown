@@ -24,6 +24,10 @@
                 height: 1em;
             }
 
+            .current {
+                background: #ff05;
+            }
+
 
             .h1 p:first-child {
                 font-size: 200%;
@@ -85,7 +89,6 @@
             for (f in formats) {
                 formats[f] = Object.assign({ className: f, innerTag: 'p' }, formats[f]);
             }
-
             let formats_all = Object.values(formats);
             let formats_singleline = formats_all.filter(f => !f.multiline);
             let formats_listItem = formats_all.filter(f => f.listItem);
@@ -112,12 +115,12 @@
                             if (!sections.length)
                                 sections.push(newSection({ outerContent: [line] }));
                             else
-                                sections[sections.length - 1].outerContent.push(line);
+                                sections.last().outerContent.push(line);
                             startNewSection = true;
                         }
                         else {
                             let format = getLineFormat(line);
-                            let prevSection = sections.length ? sections[sections.length - 1] : null;
+                            let prevSection = sections.length ? sections.last() : null;
                             let prevFormat = prevSection ? prevSection.format : null;
                             // formatted
                             if (format !== formats.default) {
@@ -130,11 +133,11 @@
                             // plain text
                             else {
                                 if (prevFormat && prevFormat.listItem && !prevSection.outerContent.length)
-                                    prevSection.innerContent[prevSection.innerContent.length - 1].push(line);
+                                    prevSection.innerContent.last().push(line);
                                 else if (startNewSection)
                                     sections.push(newSection({ innerContent: [[line]] }));
                                 else
-                                    sections[sections.length - 1].innerContent.push([line]);
+                                    sections.last().innerContent.push([line]);
                                 startNewSection = false;
                             }
                         }
@@ -191,9 +194,10 @@
                 }
                 return formatsToCheck ? null : formats.default;
             }
-            if (!Array.prototype.last) {
-                Array.prototype.last = function() { return this.length ? this[this.length - 1] : null };
-            }
+            Object.defineProperty(Array.prototype, 'last', {
+                value: function() { return this.length ? this[this.length - 1] : null; },
+                enumerable: false
+            });
         </script>
     </head>
     <body onload="init()"><div id="display"></div><textarea id="input">Start here...</textarea></body>
