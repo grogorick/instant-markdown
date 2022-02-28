@@ -2,6 +2,13 @@
     <head>
         <title>Instant Markdown</title>
         <style>
+            :root {
+                --format-width: 50pt;
+                --format-color: gray;
+                --highlight-section-color: #ff05;
+                --highlight-line-color: #fa05;
+            }
+
             #display, #input {
                 position: absolute;
                 left: 0;
@@ -14,24 +21,37 @@
             }
 
 
-            #display div, #display p, #display ul, #display ol {
+            #display div, #display p , #display ul, #display ol, #display li {
                 margin: 0;
                 padding: 0;
+            }
+
+            #display i {
+                display: inline-block;
+                width: var(--format-width);
+                color: var(--format-color);
+            }
+            #display span {
+                display: inline-block;
+                box-sizing: border-box;
+            }
+            #display :not(li) > span {
+                width: calc(100% - var(--format-width));
+            }
+            #display li > span {
+                width: 100%;
             }
             #display span:after {
                 content: '';
                 display: inline-block;
                 height: 1em;
             }
-            #display span {
-                display: block;
-            }
 
             #display .current {
-                background: #ff05;
+                background: var(--highlight-section-color);
             }
             #display .current .current {
-                background: #fa05
+                background: var(--highlight-line-color);
             }
 
             #display .h1 p:first-child {
@@ -55,16 +75,20 @@
                 margin-bottom: 4pt;
             }
 
-            #display .quote div {
-                margin-left: 21pt;
-            }
-            #display .quote div {
-                padding-left: 9pt;
+            #display .quote span {
                 border-left: 1px solid gray;
+                padding-left: 10pt;
             }
 
-            #display .ul ul, #display .ol ol {
-                margin-left: 30pt;
+            #display .ul {
+                margin-left: calc(var(--format-width) + 12pt);
+            }
+            #display .ul li i {
+                position: absolute;
+                left: 0;
+            }
+            #display .ul li span {
+                padding-left: 10pt;
             }
 
             #display .hr {
@@ -175,8 +199,12 @@
                                 let tag = document.createElement(format.innerTag);
                                 for (let l in lines) {
                                     let line = lines[l];
+                                    let fat = splitFormatAndText(line.text, format);
+                                    let i = document.createElement('i');
+                                    i.innerHTML = fat.format;
+                                    tag.appendChild(i);
                                     let span = document.createElement('span');
-                                    span.innerHTML = line.text;
+                                    span.innerHTML = fat.text;
                                     tag.appendChild(span);
                                     line.htmlTag = span;
                                 }
@@ -188,6 +216,7 @@
                             for (let c in section.outerContent) {
                                 let line = section.outerContent[c];
                                 let tag = document.createElement(formats.default.innerTag);
+                                    let fat = splitFormatAndText(line.text, format);
                                     let span = document.createElement('span');
                                     span.innerHTML = line.text;
                                     tag.appendChild(span);
@@ -262,6 +291,16 @@
                         return formatsArray[i];
                 }
                 return formatsToCheck ? null : formats.default;
+            }
+            function splitFormatAndText(line, format)
+            {
+                if (format.match === line || format.start === line )
+                    return { format: line, text: '' };
+                if (format.start)
+                    for (let ws of [' ', '\xa0', '&nbsp;'])
+                        if (line.startsWith(format.start + ws))
+                            return { format: format.start, text: line.substr(format.start.length + ws.length) };
+                return { format: '', text: line };
             }
             Object.defineProperty(Array.prototype, 'last', {
                 value: function() { return this.length ? this[this.length - 1] : null; },
