@@ -123,125 +123,124 @@
             let formats_listItem = formats_all.filter(f => f.listItem);
 
             let sections = [];
-            let selection = {};
             function init()
             {
                 input = document.querySelector('#input');
                 display = document.querySelector('#display');
-                input.addEventListener('input', e =>
+                ['click', 'focus', 'select', 'keyup'].forEach(evt => input.addEventListener(evt, updateSelection));
+                input.addEventListener('input', updateMarkdown);
+                updateMarkdown();
+            }
+            function updateMarkdown()
+            {
+                sections = [];
+                let position = 0;
+                let newSection = values => Object.assign({ pos: position, outerPos: position, format: formats.default, innerContent: [], outerContent: [] }, values);
+                let lines = input.value.split('\n');
+
+                // if (e.inputType === 'insertLineBreak') {}
+
+                // parse input text
+                let startNewSection = true;
+                lines.forEach(line =>
                 {
-                    sections = [];
-                    let position = 0;
-                    let newSection = values => Object.assign({ pos: position, outerPos: position, format: formats.default, innerContent: [], outerContent: [] }, values);
-                    let lines = input.value.split('\n');
+                    let nextPosition = position + 1 + line.length;
+                    line = { pos: position, text: line };
 
-                    // if (e.inputType === 'insertLineBreak') {}
-
-                    // parse input text
-                    let startNewSection = true;
-                    lines.forEach(line =>
-                    {
-                        let nextPosition = position + 1 + line.length;
-                        line = { pos: position, text: line };
-
-                        // empty line
-                        if (line.text.trim() === '') {
-                            if (!sections.length)
-                                sections.push(newSection({ outerContent: [line] }));
+                    // empty line
+                    if (line.text.trim() === '') {
+                        if (!sections.length)
+                            sections.push(newSection({ outerContent: [line] }));
+                        else
+                            sections.last().outerContent.push(line);
+                        startNewSection = true;
+                    }
+                    else {
+                        let format = getLineFormat(line.text);
+                        let prevSection = sections.length ? sections.last() : null;
+                        let prevFormat = prevSection ? prevSection.format : null;
+                        // formatted
+                        if (format !== formats.default) {
+                            if (format.listItem && prevFormat && prevFormat.listItem)
+                                prevSection.innerContent.push([line]);
                             else
-                                sections.last().outerContent.push(line);
-                            startNewSection = true;
+                                sections.push(newSection({ format: format, innerContent: [[line]] }));
+                            startNewSection = !!getLineFormat(line.text, formats_singleline);
                         }
+                        // plain text
                         else {
-                            let format = getLineFormat(line.text);
-                            let prevSection = sections.length ? sections.last() : null;
-                            let prevFormat = prevSection ? prevSection.format : null;
-                            // formatted
-                            if (format !== formats.default) {
-                                if (format.listItem && prevFormat && prevFormat.listItem)
-                                    prevSection.innerContent.push([line]);
-                                else
-                                    sections.push(newSection({ format: format, innerContent: [[line]] }));
-                                startNewSection = !!getLineFormat(line.text, formats_singleline);
-                            }
-                            // plain text
-                            else {
-                                if (prevFormat && prevFormat.listItem && !prevSection.outerContent.length)
-                                    prevSection.innerContent.last().push(line);
-                                else if (startNewSection)
-                                    sections.push(newSection({ innerContent: [[line]] }));
-                                else
-                                    sections.last().innerContent.push([line]);
-                                startNewSection = false;
-                            }
-                            sections.last().outerPos = nextPosition;
+                            if (prevFormat && prevFormat.listItem && !prevSection.outerContent.length)
+                                prevSection.innerContent.last().push(line);
+                            else if (startNewSection)
+                                sections.push(newSection({ innerContent: [[line]] }));
+                            else
+                                sections.last().innerContent.push([line]);
+                            startNewSection = false;
                         }
-                        position = nextPosition;
-                    });
-                    console.log(sections);
-
-                    // generate HTML
-                    display.innerHTML = '';
-                    sections.forEach(section =>
-                    {
-                        let format = section.format;
-                        section.htmlTag = document.createElement('div');
-                        section.htmlTag.className = format.className;
-
-                        if (section.innerContent.length) {
-                            let container = section.htmlTag;
-                            if (format.outerTag) {
-                                container = document.createElement(format.outerTag);
-                                section.htmlTag.appendChild(container);
-                            }
-                            for (let c in section.innerContent) {
-                                let lines = section.innerContent[c];
-                                let tag = document.createElement(format.innerTag);
-                                for (let l in lines) {
-                                    let line = lines[l];
-                                    let fat = splitFormatAndText(line.text, format);
-                                    let i = document.createElement('i');
-                                    i.innerHTML = fat.format;
-                                    tag.appendChild(i);
-                                    let span = document.createElement('span');
-                                    span.innerHTML = fat.text;
-                                    tag.appendChild(span);
-                                    line.htmlTag = span;
-                                }
-                                container.appendChild(tag);
-                                section.innerContent[c] = { lines: lines, htmlTag: tag, pos: lines[0].pos };
-                            }
-                        }
-                        if (section.outerContent.length) {
-                            for (let c in section.outerContent) {
-                                let line = section.outerContent[c];
-                                let tag = document.createElement(formats.default.innerTag);
-                                    let fat = splitFormatAndText(line.text, format);
-                                    let span = document.createElement('span');
-                                    span.innerHTML = line.text;
-                                    tag.appendChild(span);
-                                section.htmlTag.appendChild(tag);
-                                section.outerContent[c] = { lines: [{ line: line, htmlTag: span }], htmlTag: tag, pos: line.pos };
-                            }
-                        }
-                        display.appendChild(section.htmlTag);
-                    });
-                    selection = {};
-                    updateSelection();
+                        sections.last().outerPos = nextPosition;
+                    }
+                    position = nextPosition;
                 });
-                input.dispatchEvent(new Event('input'));
+                console.log(sections);
+
+                // generate HTML
+                display.innerHTML = '';
+                sections.forEach(section =>
+                {
+                    let format = section.format;
+                    section.htmlTag = document.createElement('div');
+                    section.htmlTag.className = format.className;
+
+                    if (section.innerContent.length) {
+                        let container = section.htmlTag;
+                        if (format.outerTag) {
+                            container = document.createElement(format.outerTag);
+                            section.htmlTag.appendChild(container);
+                        }
+                        for (let c in section.innerContent) {
+                            let lines = section.innerContent[c];
+                            let tag = document.createElement(format.innerTag);
+                            for (let l in lines) {
+                                let line = lines[l];
+                                let fat = splitFormatAndText(line.text, format);
+                                let i = document.createElement('i');
+                                i.innerHTML = fat.format;
+                                tag.appendChild(i);
+                                let span = document.createElement('span');
+                                span.innerHTML = fat.text;
+                                tag.appendChild(span);
+                                line.htmlTag = span;
+                            }
+                            container.appendChild(tag);
+                            section.innerContent[c] = { lines: lines, htmlTag: tag, pos: lines[0].pos };
+                        }
+                    }
+                    if (section.outerContent.length) {
+                        for (let c in section.outerContent) {
+                            let line = section.outerContent[c];
+                            let tag = document.createElement(formats.default.innerTag);
+                                let span = document.createElement('span');
+                                span.innerHTML = line.text;
+                                tag.appendChild(span);
+                                line.htmlTag = span;
+                            section.htmlTag.appendChild(tag);
+                            section.outerContent[c] = { lines: [line], htmlTag: tag, pos: line.pos };
+                        }
+                    }
+                    display.appendChild(section.htmlTag);
+                });
+                updateSelection();
             }
             function updateSelection()
             {
-                if (selection.section)
-                    selection.section.htmlTag.classList.remove('current');
-                if (selection.lines)
-                    selection.lines.htmlTag.classList.remove('current');
+                document.querySelectorAll('.current').forEach(el => el.classList.remove('current'));
 
-                let selStart = input.selectionStart;
+                let cursorPos = input.selectionStart;
+                let selection = {};
+
                 for (let s in sections) {
                     let section = sections[s];
-                    if (section.pos > selStart) {
+                    if (section.pos > cursorPos) {
                         selection.section = sections[s - 1];
                         break;
                     }
@@ -250,10 +249,10 @@
                     selection.section = sections.last();
                 selection.section.htmlTag.classList.add('current');
 
-                if (selection.section.outerPos > selStart) {
+                if (selection.section.outerPos > cursorPos) {
                     for (let c in selection.section.innerContent) {
                         let ic = selection.section.innerContent[c];
-                        if (ic.pos > selStart) {
+                        if (ic.pos > cursorPos) {
                             selection.lines = selection.section.innerContent[c - 1];
                             break;
                         }
@@ -265,7 +264,7 @@
                 else {
                     for (let c in selection.section.outerContent) {
                         let oc = selection.section.outerContent[c];
-                        if (oc.pos > selStart) {
+                        if (oc.pos > cursorPos) {
                             selection.lines = selection.section.outerContent[c - 1];
                             break;
                         }
