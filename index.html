@@ -122,14 +122,80 @@
             let formats_singleline = formats_all.filter(f => !f.multiline);
             let formats_listItem = formats_all.filter(f => f.listItem);
 
+            let docTitle = document.title;
+            let currentFileHandle = null;
+
             let sections = [];
             function init()
             {
+                // setup editor
                 input = document.querySelector('#input');
                 display = document.querySelector('#display');
-                ['click', 'focus', 'select', 'keyup'].forEach(evt => input.addEventListener(evt, updateSelection));
+                ['click', 'focus', 'select', 'keydown', 'keyup'].forEach(evt => input.addEventListener(evt, updateSelection));
                 input.addEventListener('input', updateMarkdown);
                 updateMarkdown();
+
+                // load/save local files
+                input.addEventListener('dragover', e => e.preventDefault());
+                input.addEventListener('drop', async e =>
+                {
+                    e.preventDefault();
+                    if (e.dataTransfer.items.length > 1) {
+                        alert('Only a single file can be loaded.');
+                        return;
+                    }
+                    let dataItem = e.dataTransfer.items[0];
+                    if (dataItem.kind === 'file') {
+                        currentFileHandle = await dataItem.getAsFileSystemHandle();
+                        loadFile();
+                    }
+                });
+                document.addEventListener('keydown', async e =>
+                {
+                    if (e.ctrlKey) {
+                        if (e.key.toLowerCase() === 'o') {
+                            e.preventDefault();
+                            [currentFileHandle] = await window.showOpenFilePicker();
+                            loadFile();
+                        }
+                        if (e.key.toLowerCase() === 's') {
+                            e.preventDefault();
+                            saveFile();
+                        }
+                    }
+                });
+            }
+            async function loadFile()
+            {
+                if (currentFileHandle.kind !== 'file') {
+                    currentFileHandle = null;
+                    alert('Only files can be loaded.');
+                    return;
+                }
+                if (!currentFileHandle.name.endsWith('.md')) {
+                    currentFileHandle = null;
+                    alert('Only Markdown (.md) files can be loaded.');
+                    return;
+                }
+                console.log('try to load file: ' + currentFileHandle.name);
+                let file = await currentFileHandle.getFile();
+                let reader = new FileReader();
+                reader.addEventListener('load', () => {
+                    document.title = currentFileHandle.name + ' • ' + docTitle;
+                    input.value = reader.result;
+                    updateMarkdown();
+                    console.log('file loaded: ' + currentFileHandle.name);
+                }, false);
+                reader.readAsText(file);
+            }
+            async function saveFile()
+            {
+                if (currentFileHandle) {
+                    let writableStream = await currentFileHandle.createWritable();
+                    await writableStream.write(input.value);
+                    await writableStream.close();
+                    console.log('file saved: ' + currentFileHandle.name);
+                }
             }
             function updateMarkdown()
             {
