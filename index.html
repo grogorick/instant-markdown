@@ -4,9 +4,12 @@
         <style>
             :root {
                 --format-width: 50pt;
-                --format-color: gray;
-                --highlight-section-color: #ff05;
-                --highlight-line-color: #fa05;
+                --format-color: #80808099;
+                --highlight-section-color: #057EAE11;
+                --highlight-line-color: #057EAE33;
+                --heading-border-color: #80808033;
+                --quote-border-color: #80808099;
+                --hr-color: #80808033;
             }
 
             #display, #input {
@@ -66,12 +69,12 @@
             #display .h1 p:first-child {
                 font-size: 200%;
                 margin-top: 20pt;
-                border-bottom: 1px solid #ccc;
+                border-bottom: 1px solid var(--heading-border-color);
             }
             #display .h2 p:first-child {
                 font-size: 160%;
                 margin-top: 15pt;
-                border-bottom: 1px solid #eee;
+                border-bottom: 1px solid var(--heading-border-color);
             }
             #display .h3 p:first-child, #display .h4 p:first-child, #display .h5 p:first-child, #display .h6 p:first-child {
                 margin-top: 10pt;
@@ -90,7 +93,7 @@
             }
 
             #display .quote span.right {
-                border-left: 1px solid gray;
+                border-left: 1px solid var(--quote-border-color);
                 padding-left: 10pt;
             }
 
@@ -110,7 +113,7 @@
                 width: 100%;
                 height: 0;
                 vertical-align: middle;
-                border-bottom: 1px solid gray;
+                border-bottom: 1px solid var(--hr-color);
             }
         </style>
         <script>
