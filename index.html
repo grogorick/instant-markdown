@@ -99,24 +99,23 @@
                 border-bottom: 1px solid gray;
                 flex-grow: 1;
                 height: 0.6em;
-                margin-left: 10pt;
             }
         </style>
         <script>
             let formats = {
                 default:{ multiline: true },
-                h1:     { start: '#' },
-                h2:     { start: '##' },
-                h3:     { start: '###' },
-                quote:  { start: '>', multiline: true, outerTag: 'div' },
-                ul:     { start: '-', multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
-                hr:     { match: '---' }
+                h1:     { pattern: /^(#)($|\s+(.*)$)/ },
+                h2:     { pattern: /^(##)($|\s+(.*)$)/ },
+                h3:     { pattern: /^(###)($|\s+(.*)$)/ },
+                quote:  { pattern: /^(>)($|\s*(.*)$)/, multiline: true, outerTag: 'div' },
+                ul:     { pattern: /^(-|\*)($|\s+(.*)$)/, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
+                hr:     { pattern: /^(---)()$/ }
             };
 
             let input = null;
             let display = null;
             for (let f in formats) {
-                formats[f] = Object.assign({ className: f, innerTag: 'p' }, formats[f]);
+                formats[f] = Object.assign({ matchL: 1, matchR: 2, className: f, innerTag: 'p' }, formats[f]);
             }
             let formats_all = Object.values(formats);
             let formats_singleline = formats_all.filter(f => !f.multiline);
@@ -211,7 +210,7 @@
                 lines.forEach(line =>
                 {
                     let nextPosition = position + 1 + line.length;
-                    line = { pos: position, text: line };
+                    line = { pos: position, text: line, left: '', right: line };
 
                     // empty line
                     if (line.text.trim() === '') {
@@ -222,16 +221,21 @@
                         startNewSection = true;
                     }
                     else {
-                        let format = getLineFormat(line.text);
+                        let lineFormatMatch = getLineFormat(line.text);
+                        line.left = lineFormatMatch.matchL;
+                        line.right = lineFormatMatch.matchR;
                         let prevSection = sections.length ? sections.last() : null;
                         let prevFormat = prevSection ? prevSection.format : null;
                         // formatted
-                        if (format !== formats.default) {
-                            if (format.listItem && prevFormat && prevFormat.listItem)
+                        if (lineFormatMatch.format !== formats.default) {
+                            if (lineFormatMatch.format.listItem && prevFormat && prevFormat.listItem) {
                                 prevSection.innerContent.push([line]);
-                            else
-                                sections.push(newSection({ format: format, innerContent: [[line]] }));
-                            startNewSection = !!getLineFormat(line.text, formats_singleline);
+                                startNewSection = false;
+                            }
+                            else {
+                                sections.push(newSection({ format: lineFormatMatch.format, innerContent: [[line]] }));
+                                startNewSection = formats_singleline.includes(lineFormatMatch.format);
+                            }
                         }
                         // plain text
                         else {
@@ -255,7 +259,7 @@
                 {
                     let format = section.format;
                     section.htmlTag = document.createElement('div');
-                    section.htmlTag.className = format.className;
+                    section.htmlTag.classList.add(format.className);
 
                     if (section.innerContent.length) {
                         let container = section.htmlTag;
@@ -268,12 +272,11 @@
                             let tag = document.createElement(format.innerTag);
                             for (let l in lines) {
                                 let line = lines[l];
-                                let fat = splitFormatAndText(line.text, format);
                                 let i = document.createElement('i');
-                                i.innerHTML = fat.format;
+                                i.innerHTML = line.left;
                                 tag.appendChild(i);
                                 let span = document.createElement('span');
-                                span.innerHTML = fat.text;
+                                span.innerHTML = line.right;
                                 tag.appendChild(span);
                                 line.htmlTag = span;
                             }
@@ -352,20 +355,14 @@
 
                 let formatsArray = formatsToCheck || formats_all;
                 for (let i in formatsArray) {
-                    if (check(line, formatsArray[i]))
-                        return formatsArray[i];
+                    let format = formatsArray[i];
+                    if (format.pattern) {
+                        let match = line.match(format.pattern);
+                        if (match)
+                            return { format: format, matchL: match[format.matchL], matchR: match[format.matchR] };
+                    }
                 }
-                return formatsToCheck ? null : formats.default;
-            }
-            function splitFormatAndText(line, format)
-            {
-                if (format.match === line || format.start === line )
-                    return { format: line, text: '' };
-                if (format.start)
-                    for (let ws of [' ', '\xa0', '&nbsp;'])
-                        if (line.startsWith(format.start + ws))
-                            return { format: format.start, text: line.substr(format.start.length + ws.length) };
-                return { format: '', text: line };
+                return formatsToCheck ? null : { format: formats.default, matchL: '', matchR: line };
             }
             Object.defineProperty(Array.prototype, 'last', {
                 value: function() { return this.length ? this[this.length - 1] : null; },
