@@ -26,22 +26,22 @@
                 padding: 0;
             }
 
-            #display i {
+            #display span.left {
                 display: inline-block;
                 width: var(--format-width);
                 color: var(--format-color);
             }
-            #display span {
+            #display span.right {
                 display: inline-block;
                 box-sizing: border-box;
             }
-            #display :not(li) > span {
+            #display :not(li) > span.right {
                 width: calc(100% - var(--format-width));
             }
-            #display li > span {
+            #display li > span.right {
                 width: 100%;
             }
-            #display span:after {
+            #display span.right:after {
                 content: '';
                 display: inline-block;
                 height: 1em;
@@ -54,28 +54,42 @@
                 background: var(--highlight-line-color);
             }
 
+            #display .h1 p:first-child,
+            #display .h2 p:first-child,
+            #display .h3 p:first-child,
+            #display .h4 p:first-child,
+            #display .h5 p:first-child,
+            #display .h6 p:first-child {
+                font-weight: bold;
+                margin-bottom: 5pt;
+            }
             #display .h1 p:first-child {
                 font-size: 200%;
-                font-weight: bold;
                 margin-top: 20pt;
-                margin-bottom: 5pt;
                 border-bottom: 1px solid #ccc;
             }
             #display .h2 p:first-child {
                 font-size: 160%;
-                font-weight: bold;
-                margin-top: 10pt;
-                margin-bottom: 4pt;
+                margin-top: 15pt;
                 border-bottom: 1px solid #eee;
+            }
+            #display .h3 p:first-child, #display .h4 p:first-child, #display .h5 p:first-child, #display .h6 p:first-child {
+                margin-top: 10pt;
             }
             #display .h3 p:first-child {
                 font-size: 140%;
-                font-weight: bold;
-                margin-top: 5pt;
-                margin-bottom: 4pt;
+            }
+            #display .h4 p:first-child {
+                font-size: 130%;
+            }
+            #display .h5 p:first-child {
+                font-size: 120%;
+            }
+            #display .h6 p:first-child {
+                font-size: 110%;
             }
 
-            #display .quote span {
+            #display .quote span.right {
                 border-left: 1px solid gray;
                 padding-left: 10pt;
             }
@@ -83,22 +97,20 @@
             #display .ul {
                 margin-left: calc(var(--format-width) + 12pt);
             }
-            #display .ul li i {
+            #display .ul li span.left {
                 position: absolute;
                 left: 0;
             }
-            #display .ul li span {
+            #display .ul li span.right {
                 padding-left: 10pt;
             }
 
-            #display .hr {
-                display: flex;
-            }
-            #display .hr::after {
+            #display .hr div span.right::after {
                 content: ' ';
+                width: 100%;
+                height: 0;
+                vertical-align: middle;
                 border-bottom: 1px solid gray;
-                flex-grow: 1;
-                height: 0.6em;
             }
         </style>
         <script>
@@ -107,9 +119,12 @@
                 h1:     { pattern: /^(#)($|\s+(.*)$)/ },
                 h2:     { pattern: /^(##)($|\s+(.*)$)/ },
                 h3:     { pattern: /^(###)($|\s+(.*)$)/ },
+                h4:     { pattern: /^(####)($|\s+(.*)$)/ },
+                h5:     { pattern: /^(#####)($|\s+(.*)$)/ },
+                h6:     { pattern: /^(######)($|\s+(.*)$)/ },
                 quote:  { pattern: /^(>)($|\s*(.*)$)/, multiline: true, outerTag: 'div' },
                 ul:     { pattern: /^(-|\*)($|\s+(.*)$)/, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
-                hr:     { pattern: /^(---)()$/ }
+                hr:     { pattern: /^(---)()$/, innerTag: 'div' }
             };
 
             let input = null;
@@ -228,7 +243,12 @@
                         let prevFormat = prevSection ? prevSection.format : null;
                         // formatted
                         if (lineFormatMatch.format !== formats.default) {
-                            if (lineFormatMatch.format.listItem && prevFormat && prevFormat.listItem) {
+                            let sameAsPrevious = prevFormat && prevFormat === lineFormatMatch.format && !prevSection.outerContent.length;
+                            if (lineFormatMatch.format.listItem && sameAsPrevious) {
+                                prevSection.innerContent.push([line]);
+                                startNewSection = false;
+                            }
+                            else if (lineFormatMatch.format.multiline && sameAsPrevious) {
                                 prevSection.innerContent.push([line]);
                                 startNewSection = false;
                             }
@@ -272,13 +292,15 @@
                             let tag = document.createElement(format.innerTag);
                             for (let l in lines) {
                                 let line = lines[l];
-                                let i = document.createElement('i');
-                                i.innerHTML = line.left;
-                                tag.appendChild(i);
-                                let span = document.createElement('span');
-                                span.innerHTML = line.right;
-                                tag.appendChild(span);
-                                line.htmlTag = span;
+                                let spanLeft = document.createElement('span');
+                                spanLeft.classList.add('left');
+                                spanLeft.innerHTML = line.left;
+                                tag.appendChild(spanLeft);
+                                let spanRight = document.createElement('span');
+                                spanRight.classList.add('right');
+                                spanRight.innerHTML = line.right;
+                                tag.appendChild(spanRight);
+                                line.htmlTag = spanRight;
                             }
                             container.appendChild(tag);
                             section.innerContent[c] = { lines: lines, htmlTag: tag, pos: lines[0].pos };
@@ -289,6 +311,7 @@
                             let line = section.outerContent[c];
                             let tag = document.createElement(formats.default.innerTag);
                                 let span = document.createElement('span');
+                                span.classList.add('right');
                                 span.innerHTML = line.text;
                                 tag.appendChild(span);
                                 line.htmlTag = span;
