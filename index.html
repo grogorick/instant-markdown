@@ -137,6 +137,7 @@
             }
         </style>
         <script>
+            let fileTypeDialogOption = { types: [{ description: 'Markdown', accept: { 'text/markdown': ['.md'] } }] };
             let formats = {
                 default:{ multiline: true },
                 h1:     { pattern: /^(#)($|\s+(.*)$)/ },
@@ -194,17 +195,26 @@
                 document.addEventListener('keydown', async e =>
                 {
                     if (e.ctrlKey) {
-                        if (e.key.toLowerCase() === 'o') {
-                            e.preventDefault();
-                            [currentFileHandle] = await window.showOpenFilePicker();
-                            loadFile();
-                        }
-                        if (e.key.toLowerCase() === 's') {
-                            e.preventDefault();
-                            saveFile();
+                        switch (e.key.toLowerCase()) {
+                            case 'o':
+                                e.preventDefault();
+                                [currentFileHandle] = await window.showOpenFilePicker(fileTypeDialogOption);
+                                loadFile();
+                            break;
+                            case 's':
+                                e.preventDefault();
+                                saveFile();
+                            break;
+                            default:
                         }
                     }
                 });
+            }
+            function reset()
+            {
+                input.value = '';
+                display.innerHTML = '';
+                startInfo.classList.add('hidden');
             }
             async function loadFile()
             {
@@ -222,6 +232,7 @@
                 let file = await currentFileHandle.getFile();
                 let reader = new FileReader();
                 reader.addEventListener('load', () => {
+                    reset();
                     document.title = currentFileHandle.name + ' • ' + docTitle;
                     input.value = reader.result;
                     updateMarkdown();
@@ -231,12 +242,17 @@
             }
             async function saveFile()
             {
-                if (currentFileHandle) {
-                    let writableStream = await currentFileHandle.createWritable();
-                    await writableStream.write(input.value);
-                    await writableStream.close();
-                    console.log('file saved: ' + currentFileHandle.name);
+                if (!currentFileHandle) {
+                    currentFileHandle = await window.showSaveFilePicker(fileTypeDialogOption);
+                    if (!currentFileHandle) {
+                        return;
+                    }
                 }
+                let writableStream = await currentFileHandle.createWritable();
+                await writableStream.write(input.value);
+                await writableStream.close();
+                document.title = currentFileHandle.name + ' • ' + docTitle;
+                console.log('file saved: ' + currentFileHandle.name);
             }
             function updateMarkdown()
             {
