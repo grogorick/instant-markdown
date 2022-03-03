@@ -237,6 +237,12 @@
                                 e.preventDefault();
                                 saveFile();
                             break;
+                            case 'n':
+                            case 'q':
+                                e.preventDefault();
+                                reset();
+                                updateMarkdown();
+                            break;
                             default:
                         }
                     }
@@ -268,11 +274,15 @@
             {
                 customStyle.replace(':root{' + settingsInput.value + '}');
             }
-            function reset()
+            function reset(clearFileHandle = true)
             {
                 input.value = '';
                 display.innerHTML = '';
                 startInfo.classList.add('hidden');
+                if (clearFileHandle) {
+                    currentFileHandle = null;
+                    document.title = docTitle;
+                }
             }
             function toggleSettings()
             {
@@ -300,7 +310,7 @@
                 let file = await currentFileHandle.getFile();
                 let reader = new FileReader();
                 reader.addEventListener('load', () => {
-                    reset();
+                    reset(false);
                     document.title = currentFileHandle.name + ' • ' + docTitle;
                     input.value = reader.result;
                     updateMarkdown();
