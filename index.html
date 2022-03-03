@@ -183,23 +183,32 @@
         <script>
             let fileTypeDialogOption = { types: [{ description: 'Markdown', accept: { 'text/markdown': ['.md'] } }] };
             let formats = {
-                default:{ multiline: true },
-                h1:     { pattern: /^(#)($|\s+(.*)$)/ },
-                h2:     { pattern: /^(##)($|\s+(.*)$)/ },
-                h3:     { pattern: /^(###)($|\s+(.*)$)/ },
-                h4:     { pattern: /^(####)($|\s+(.*)$)/ },
-                h5:     { pattern: /^(#####)($|\s+(.*)$)/ },
-                h6:     { pattern: /^(######)($|\s+(.*)$)/ },
-                quote:  { pattern: /^(>)($|\s*(.*)$)/, multiline: true, outerTag: 'div' },
-                ul:     { pattern: /^(-|\*)($|\s+(.*)$)/, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
-                hr:     { pattern: /^(---)()$/, innerTag: 'div' }
+                line: {
+                    default:{ multiline: true },
+                    h1:     { pattern: /^(#)($|\s+(.*)$)/ },
+                    h2:     { pattern: /^(##)($|\s+(.*)$)/ },
+                    h3:     { pattern: /^(###)($|\s+(.*)$)/ },
+                    h4:     { pattern: /^(####)($|\s+(.*)$)/ },
+                    h5:     { pattern: /^(#####)($|\s+(.*)$)/ },
+                    h6:     { pattern: /^(######)($|\s+(.*)$)/ },
+                    quote:  { pattern: /^(>)($|\s*(.*)$)/, multiline: true, outerTag: 'div' },
+                    ul:     { pattern: /^(-|\*)($|\s+(.*)$)/, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
+                    hr:     { pattern: /^(---)()$/, innerTag: 'div' }
+                },
+                inline: {}};
+            let formatDefaults = {
+                line: { match: { l: 1, r: 2 }, innerTag: 'p' },
+                inline: {}
             };
-            for (let f in formats) {
-                formats[f] = Object.assign({ matchL: 1, matchR: 2, className: f, innerTag: 'p' }, formats[f]);
+            for (let ff in formats) {
+                for (let f in formats[ff]) {
+                    formats[ff][f].className = f;
+                    formats[ff][f] = Object.assign({}, formatDefaults[ff], formats[ff][f]);
+                }
             }
-            let formats_all = Object.values(formats);
-            let formats_singleline = formats_all.filter(f => !f.multiline);
-            let formats_listItem = formats_all.filter(f => f.listItem);
+            let lineFormats_all = Object.values(formats.line);
+            let lineFormats_singleline = lineFormats_all.filter(f => !f.multiline);
+            let lineFormats_listItem = lineFormats_all.filter(f => f.listItem);
 
             let input = null;
             let display = null;
@@ -387,7 +396,7 @@
 
                 sections = [];
                 let position = 0;
-                let newSection = values => Object.assign({ pos: position, outerPos: position, format: formats.default, innerContent: [], outerContent: [] }, values);
+                let newSection = values => Object.assign({ pos: position, outerPos: position, format: formats.line.default, innerContent: [], outerContent: [] }, values);
                 let lines = input.value.split('\n');
 
                 // if (e.inputType === 'insertLineBreak') {}
@@ -409,12 +418,12 @@
                     }
                     else {
                         let lineFormatMatch = getLineFormat(line.text);
-                        line.left = lineFormatMatch.matchL;
-                        line.right = lineFormatMatch.matchR;
+                        line.left = lineFormatMatch.match.l;
+                        line.right = lineFormatMatch.match.r;
                         let prevSection = sections.length ? sections.last() : null;
                         let prevFormat = prevSection ? prevSection.format : null;
                         // formatted
-                        if (lineFormatMatch.format !== formats.default) {
+                        if (lineFormatMatch.format !== formats.line.default) {
                             let sameAsPrevious = prevFormat && prevFormat === lineFormatMatch.format && !prevSection.outerContent.length;
                             if (lineFormatMatch.format.listItem && sameAsPrevious) {
                                 prevSection.innerContent.push([line]);
@@ -426,7 +435,7 @@
                             }
                             else {
                                 sections.push(newSection({ format: lineFormatMatch.format, innerContent: [[line]] }));
-                                startNewSection = formats_singleline.includes(lineFormatMatch.format);
+                                startNewSection = lineFormats_singleline.includes(lineFormatMatch.format);
                             }
                         }
                         // plain text
@@ -480,7 +489,7 @@
                     if (section.outerContent.length) {
                         for (let c in section.outerContent) {
                             let line = section.outerContent[c];
-                            let tag = document.createElement(formats.default.innerTag);
+                            let tag = document.createElement(formats.line.default.innerTag);
                                 let span = document.createElement('span');
                                 span.classList.add('right');
                                 span.innerHTML = line.text;
@@ -542,24 +551,20 @@
             }
             function getLineFormat(line, formatsToCheck = null)
             {
-                let check = (line, format) =>
-                    (format.match === line)
-                        || (format.start
-                            && (format.start === line
-                                || line.startsWith(format.start + ' ')
-                                || line.startsWith(format.start + '\xa0')
-                                || line.startsWith(format.start + '&nbsp;')));
-
-                let formatsArray = formatsToCheck || formats_all;
+                let formatsArray = formatsToCheck || lineFormats_all;
                 for (let i in formatsArray) {
                     let format = formatsArray[i];
-                    if (format.pattern) {
-                        let match = line.match(format.pattern);
-                        if (match)
-                            return { format: format, matchL: match[format.matchL], matchR: match[format.matchR] };
+                    if (!format.inline && format.pattern) {
+                        let allMatches = line.match(format.pattern);
+                        if (allMatches) {
+                            let matches = {};
+                            for (let m in format.match)
+                                matches[m] = allMatches[format.match[m]];
+                            return { format: format, match: matches };
+                        }
                     }
                 }
-                return formatsToCheck ? null : { format: formats.default, matchL: '', matchR: line };
+                return formatsToCheck ? null : { format: formats.line.default, match: { l: '', r: line } };
             }
             Object.defineProperty(Array.prototype, 'last', {
                 value: function() { return this.length ? this[this.length - 1] : null; },
