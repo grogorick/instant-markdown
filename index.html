@@ -207,6 +207,7 @@
             let docTitle = document.title;
             let customStyle = null;
             let currentFileHandle = null;
+            let fileChanged = false;
 
             let sections = [];
 
@@ -222,14 +223,17 @@
 
                 // editor
                 ['click', 'focus', 'select', 'keydown', 'keyup'].forEach(evt => input.addEventListener(evt, updateSelection));
-                input.addEventListener('input', updateMarkdown);
+                input.addEventListener('input', e => { fileChanged = true; updateMarkdown(); });
                 updateMarkdown();
 
                 // load/save local files
-                input.addEventListener('dragover', e => e.preventDefault());
-                input.addEventListener('drop', async e =>
+                let warningMsg = 'Changes to the current document will be lost.';
+                document.addEventListener('dragover', e => e.preventDefault());
+                document.addEventListener('drop', async e =>
                 {
                     e.preventDefault();
+                    if (fileChanged && !confirm(warningMsg + ' Proceed to open the dropped file?'))
+                        return;
                     if (e.dataTransfer.items.length > 1) {
                         alert('Only a single file can be loaded.');
                         return;
@@ -246,6 +250,8 @@
                         switch (e.key.toLowerCase()) {
                             case 'o':
                                 e.preventDefault();
+                                if (fileChanged && !confirm(warningMsg + ' Proceed to open another file?'))
+                                    return;
                                 [currentFileHandle] = await window.showOpenFilePicker(fileTypeDialogOption);
                                 loadFile();
                             break;
@@ -256,6 +262,8 @@
                             case 'n':
                             case 'q':
                                 e.preventDefault();
+                                if (fileChanged && !confirm(warningMsg + ' Proceed to start a new file?'))
+                                    return;
                                 reset();
                                 updateMarkdown();
                             break;
@@ -265,6 +273,14 @@
                     if (e.key.toLowerCase() === 'escape') {
                         e.preventDefault();
                         toggleSettings();
+                    }
+                });
+                window.addEventListener('beforeunload', e => {
+                    if (fileChanged) {
+                        e.preventDefault();
+                        let msg = warningMsg + ' Close ' + docTitle + '?';
+                        (e || window.event).returnValue = msg;
+                        return msg;
                     }
                 });
 
@@ -299,6 +315,7 @@
                     currentFileHandle = null;
                     document.title = docTitle;
                 }
+                fileChanged = false;
             }
             function toggleSettings()
             {
@@ -345,6 +362,7 @@
                 let writableStream = await currentFileHandle.createWritable();
                 await writableStream.write(input.value);
                 await writableStream.close();
+                fileChanged = false;
                 document.title = currentFileHandle.name + ' • ' + docTitle;
                 console.log('file saved: ' + currentFileHandle.name);
             }
