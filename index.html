@@ -328,6 +328,9 @@
             }
             function updateSelection()
             {
+                if (!input.value.length)
+                    return;
+
                 document.querySelectorAll('.current').forEach(el => el.classList.remove('current'));
 
                 let cursorPos = input.selectionStart;
