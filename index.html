@@ -228,6 +228,10 @@
                 ['click', 'focus', 'select', 'keydown', 'keyup'].forEach(evt => input.addEventListener(evt, updateSelection));
                 input.addEventListener('input', e => { fileChanged = true; updateMarkdown(); });
                 updateMarkdown();
+                display.addEventListener('click', e =>
+                {
+                    input.focus();
+                });
 
                 // load/save local files
                 let warningMsg = 'Changes to the current document will be lost.';
@@ -563,8 +567,6 @@
         </script>
     </head>
     <body onload="init()">
-        <div id="display"></div>
-        <textarea id="input"></textarea>
         <div id="start-info" class="hidden">
             <p>Just start typing</p>
             <p>or press Ctrl+O or drop a file you want to edit</p>
@@ -582,5 +584,7 @@
                 <p><span>Escape</span>Toggle settings</p>
             </div>
         </div>
+        <textarea id="input"></textarea>
+        <div id="display"></div>
     </body>
 </html>
