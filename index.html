@@ -226,7 +226,7 @@
 
                 // editor
                 ['click', 'focus', 'select', 'keydown', 'keyup'].forEach(evt => input.addEventListener(evt, updateSelection));
-                input.addEventListener('input', e => { fileChanged = true; updateMarkdown(); });
+                input.addEventListener('input', e => { fileChanged = !!input.value.length; updateMarkdown(); });
                 updateMarkdown();
                 display.addEventListener('click', e =>
                 {
