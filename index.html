@@ -144,14 +144,15 @@
                 backdrop-filter: blur(2pt);
                 background-color: #fffa;
 
+                display: flex;
+                flex-direction: column;
+                padding: 10%;
+            }
+            #settings h2 {
                 text-align: center;
                 font-size: 200%;
                 font-weight: bold;
                 color: gray;
-
-                display: flex;
-                flex-direction: column;
-                padding: 10%;
             }
             #settings textarea {
                 flex-grow: 1;
@@ -159,6 +160,21 @@
                 padding: 20pt;
                 border: 1px solid #80808033;
                 box-shadow: 3pt 3pt 10pt #80808066;
+            }
+            #controls-info {
+                margin-top: 20pt;
+            }
+            #controls-info p {
+                margin: 5pt 0 0;
+            }
+            #controls-info p.more {
+                margin-top: 0;
+            }
+            #controls-info span {
+                display: inline-block;
+                width: 70pt;
+                font-weight: bold;
+                vertical-align: top;
             }
         </style>
         <script>
@@ -525,12 +541,22 @@
             });
         </script>
     </head>
-    <body onload="init()"><!--
-     --><div id="display"></div><!--
-     --><textarea id="input"></textarea><!--
-     --><div id="start-info" class="hidden">
+    <body onload="init()">
+        <div id="display"></div>
+        <textarea id="input"></textarea>
+        <div id="start-info" class="hidden">
             <p>Just type to start a fresh document</p><p>or press Ctrl+O or drop a file you want to edit.</p>
-        </div><!--
-     --><div id="settings" class="hidden">Settings<textarea></textarea></div><!--
- --></body>
+        </div>
+        <div id="settings" class="hidden">
+            <h2>Settings</h2>
+            <textarea></textarea>
+            <div id="controls-info">
+                <p><span>Ctrl + O</span>Open a markdown file</p>
+                <p><span>Ctrl + S</span>Save a markdown file</p>
+                <p><span>Ctrl + Q</span>Start a fresh markdown file</p>
+                <p class="more"><span>Ctrl + N</span>(only avilable in app mode)</p>
+                <p><span>Escape</span>Toggle settings</p>
+            </div>
+        </div>
+    </body>
 </html>
