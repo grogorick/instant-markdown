@@ -13,12 +13,15 @@
             }
 
 
+            textarea:focus {
+                outline: none;
+            }
             .hidden {
                 display: none !important;
             }
 
 
-            #display, #input {
+            #display, #input, #settings {
                 position: absolute;
                 left: 0;
                 top: 0;
@@ -135,6 +138,28 @@
             #start-info p {
                 padding: 10pt 0;
             }
+
+
+            #settings {
+                backdrop-filter: blur(2pt);
+                background-color: #fffa;
+
+                text-align: center;
+                font-size: 200%;
+                font-weight: bold;
+                color: gray;
+
+                display: flex;
+                flex-direction: column;
+                padding: 10%;
+            }
+            #settings textarea {
+                flex-grow: 1;
+
+                padding: 20pt;
+                border: 1px solid #80808033;
+                box-shadow: 3pt 3pt 10pt #80808066;
+            }
         </style>
         <script>
             let fileTypeDialogOption = { types: [{ description: 'Markdown', accept: { 'text/markdown': ['.md'] } }] };
@@ -160,17 +185,24 @@
             let input = null;
             let display = null;
             let startInfo = null;
+            let settings = null;
+            let settingsInput = null;
 
             let docTitle = document.title;
+            let customStyle = null;
             let currentFileHandle = null;
 
             let sections = [];
+
+            let cookies = Object.assign({}, ...document.cookie.split(';').map(c => { c = c.split('='); return { [c[0].trim()]: decodeURIComponent(c[1]) }; }));
 
             function init()
             {
                 input = document.querySelector('#input');
                 display = document.querySelector('#display');
                 startInfo = document.querySelector('#start-info');
+                settings = document.querySelector('#settings');
+                settingsInput = settings.querySelector('textarea');
 
                 // editor
                 ['click', 'focus', 'select', 'keydown', 'keyup'].forEach(evt => input.addEventListener(evt, updateSelection));
@@ -208,13 +240,49 @@
                             default:
                         }
                     }
+                    if (e.key.toLowerCase() === 'escape') {
+                        e.preventDefault();
+                        toggleSettings();
+                    }
                 });
+
+                // settings
+                customStyle = new CSSStyleSheet();
+                document.adoptedStyleSheets = [customStyle];
+                if ('customStyle' in cookies)
+                    settingsInput.value = cookies.customStyle;
+                else {
+                    let style = document.styleSheets[0].cssRules[0].styleMap;
+                    let defaultStyle = '';
+                    for (let key of style.keys()) {
+                        defaultStyle += key + ':' + style.get(key) + ';\n';
+                    }
+                    settingsInput.value = defaultStyle;
+                }
+                settingsInput.addEventListener('input', e => {
+                    applyCustomStyle();
+                });
+                applyCustomStyle();
+            }
+            function applyCustomStyle()
+            {
+                customStyle.replace(':root{' + settingsInput.value + '}');
             }
             function reset()
             {
                 input.value = '';
                 display.innerHTML = '';
                 startInfo.classList.add('hidden');
+            }
+            function toggleSettings()
+            {
+                settings.classList.toggle('hidden');
+                if (!settings.classList.contains('hidden')) {
+                    settingsInput.focus();
+                }
+                else {
+                    document.cookie = 'customStyle=' + encodeURIComponent(settingsInput.value);
+                }
             }
             async function loadFile()
             {
@@ -453,5 +521,6 @@
      --><div id="start-info" class="hidden">
             <p>Just type to start a fresh document</p><p>or press Ctrl+O or drop a file you want to edit.</p>
         </div><!--
+     --><div id="settings" class="hidden">Settings<textarea></textarea></div><!--
  --></body>
 </html>
