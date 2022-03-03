@@ -12,6 +12,12 @@
                 --hr-color: #80808033;
             }
 
+
+            .hidden {
+                display: none !important;
+            }
+
+
             #display, #input {
                 position: absolute;
                 left: 0;
@@ -115,6 +121,20 @@
                 vertical-align: middle;
                 border-bottom: 1px solid var(--hr-color);
             }
+
+
+            #start-info {
+                display: inline-block;
+                position: relative;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 100%;
+                text-align: center;
+                font-style: italic;
+            }
+            #start-info p {
+                padding: 10pt 0;
+            }
         </style>
         <script>
             let formats = {
@@ -129,9 +149,6 @@
                 ul:     { pattern: /^(-|\*)($|\s+(.*)$)/, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
                 hr:     { pattern: /^(---)()$/, innerTag: 'div' }
             };
-
-            let input = null;
-            let display = null;
             for (let f in formats) {
                 formats[f] = Object.assign({ matchL: 1, matchR: 2, className: f, innerTag: 'p' }, formats[f]);
             }
@@ -139,15 +156,22 @@
             let formats_singleline = formats_all.filter(f => !f.multiline);
             let formats_listItem = formats_all.filter(f => f.listItem);
 
+            let input = null;
+            let display = null;
+            let startInfo = null;
+
             let docTitle = document.title;
             let currentFileHandle = null;
 
             let sections = [];
+
             function init()
             {
-                // setup editor
                 input = document.querySelector('#input');
                 display = document.querySelector('#display');
+                startInfo = document.querySelector('#start-info');
+
+                // editor
                 ['click', 'focus', 'select', 'keydown', 'keyup'].forEach(evt => input.addEventListener(evt, updateSelection));
                 input.addEventListener('input', updateMarkdown);
                 updateMarkdown();
@@ -216,6 +240,15 @@
             }
             function updateMarkdown()
             {
+                display.innerHTML = '';
+
+                if (input.value.length)
+                    startInfo.classList.add('hidden');
+                else {
+                    startInfo.classList.remove('hidden');
+                    return;
+                }
+
                 sections = [];
                 let position = 0;
                 let newSection = values => Object.assign({ pos: position, outerPos: position, format: formats.default, innerContent: [], outerContent: [] }, values);
@@ -277,7 +310,6 @@
                 console.log(sections);
 
                 // generate HTML
-                display.innerHTML = '';
                 sections.forEach(section =>
                 {
                     let format = section.format;
@@ -399,5 +431,11 @@
             });
         </script>
     </head>
-    <body onload="init()"><div id="display"></div><textarea id="input">Start here...</textarea></body>
+    <body onload="init()"><!--
+     --><div id="display"></div><!--
+     --><textarea id="input"></textarea><!--
+     --><div id="start-info" class="hidden">
+            <p>Just type to start a fresh document</p><p>or press Ctrl+O or drop a file you want to edit.</p>
+        </div><!--
+ --></body>
 </html>
