@@ -6,8 +6,12 @@
                 --format-width: 50pt;
                 --line-format-color: #80808099;
                 --inline-format-color: #80808099;
+
                 --highlight-section-color: #057EAE11;
+                --highlight-item-color: #057EAE22;
                 --highlight-line-color: #057EAE33;
+                --highlight-part-color: #057EAE55;
+
                 --heading-border-color: #80808033;
                 --quote-border-color: #80808099;
                 --hr-color: #80808033;
@@ -64,7 +68,13 @@
                 background: var(--highlight-section-color);
             }
             #display .current .current {
+                background: var(--highlight-item-color);
+            }
+            #display .current .current .current {
                 background: var(--highlight-line-color);
+            }
+            #display .current .current .current .current {
+                background: var(--highlight-part-color);
             }
 
             #display .h1 p:first-child,
@@ -245,6 +255,7 @@
             let fileChanged = false;
 
             let sections = [];
+            let selection = {};
 
             let cookies = Object.assign({}, ...document.cookie.split(';').map(c => { c = c.split('='); return { [c[0].trim()]: decodeURIComponent(c[1]) }; }));
 
@@ -499,9 +510,17 @@
                                 spanLeft.classList.add('left');
                                 spanLeft.innerHTML = line.left;
                                 tag.appendChild(spanLeft);
+
                                 let spanRight = document.createElement('span');
                                 spanRight.classList.add('right');
-                                spanRight.innerHTML = applyInlineFormats(line.right);
+                                line.rightParts = detectInlineFormats(line);
+                                for (let part of line.rightParts) {
+                                    let spanPart = document.createElement('span');
+                                    spanPart.className = part.classList.join(' ');
+                                    spanPart.innerHTML = part.text;
+                                    spanRight.appendChild(spanPart);
+                                    part.htmlTag = spanPart;
+                                }
                                 tag.appendChild(spanRight);
                                 line.htmlTag = spanRight;
                             }
@@ -526,41 +545,17 @@
                 });
                 updateSelection();
             }
-            function applyInlineFormats(text) {
-                let parts = [];
-                let active = {};
-                while (true) {
-                    let next = null;
-                    for (let format of inlineFormats) {
-                        let tmp = text.match(format.pattern);
-                        if (tmp && (!next || (tmp.index < next.match.index) || (tmp.index === next.match.index && format.count > next.count)))
-                            next = { match: tmp, format: format };
-                    }
-                    if (!next)
-                        break;
-                    let splitPos = next.match.index + next.match[next.format.splitAfter].length;
-                    let part = text.substr(0, splitPos - next.format.count) +
-                        '<span class="fmt">' + text.substr(splitPos - next.format.count, next.format.count) + '</span>';
-                    parts.push({ text: part, classList: Object.keys(active) });
-                    text = text.substr(splitPos);
-                    if (next.format.start || (next.format.toggle && !active[next.format.className]))
-                        active[next.format.className] = true;
-                    else if (next.format.end || (next.format.toggle && active[next.format.className]))
-                        delete active[next.format.className];
-                }
-                parts.push({ text: text, classList: Object.keys(active) });
-                return parts.map(p => '<span class="' + p.classList.join(' ') + '">' + p.text + '</span>').join('');
-            }
             function updateSelection()
             {
                 if (!input.value.length)
                     return;
 
-                document.querySelectorAll('.current').forEach(el => el.classList.remove('current'));
+                document.querySelectorAll('#display .current').forEach(el => el.classList.remove('current'));
 
                 let cursorPos = input.selectionStart;
-                let selection = {};
+                selection = {};
 
+                // section
                 for (let s in sections) {
                     let section = sections[s];
                     if (section.pos > cursorPos) {
@@ -572,29 +567,56 @@
                     selection.section = sections.last();
                 selection.section.htmlTag.classList.add('current');
 
+                // item
                 if (selection.section.blankLinesPos > cursorPos) {
                     for (let c in selection.section.content) {
-                        let ic = selection.section.content[c];
-                        if (ic.pos > cursorPos) {
-                            selection.lines = selection.section.content[c - 1];
+                        let item = selection.section.content[c];
+                        if (item.pos > cursorPos) {
+                            selection.item = selection.section.content[c - 1];
                             break;
                         }
                     }
-                    if (!selection.lines)
-                        selection.lines = selection.section.content.last();
-                    selection.lines.htmlTag.classList.add('current');
+                    if (!selection.item)
+                        selection.item = selection.section.content.last();
+                    selection.item.htmlTag.classList.add('current');
+
+                    // line
+                    for (let l in selection.item.lines) {
+                        let line = selection.item.lines[l];
+                        if (line.pos > cursorPos) {
+                            selection.line = selection.item.lines[l - 1];
+                            break;
+                        }
+                    }
+                    if (!selection.line)
+                        selection.line = selection.item.lines.last();
+                    selection.line.htmlTag.classList.add('current');
+
+                    // inline part
+                    for (let p in selection.line.rightParts) {
+                        let part = selection.line.rightParts[p];
+                        if (part.pos > cursorPos) {
+                            selection.inlinePart = selection.line.rightParts[p - 1];
+                            break;
+                        }
+                    }
+                    if (!selection.inlinePart)
+                        selection.inlinePart = selection.line.rightParts.last();
+                    selection.inlinePart.htmlTag.classList.add('current');
                 }
+
+                // blank line
                 else {
                     for (let c in selection.section.blankLines) {
                         let oc = selection.section.blankLines[c];
                         if (oc.pos > cursorPos) {
-                            selection.lines = selection.section.blankLines[c - 1];
+                            selection.item = selection.section.blankLines[c - 1];
                             break;
                         }
                     }
-                    if (!selection.lines)
-                        selection.lines = selection.section.blankLines.last();
-                    selection.lines.htmlTag.classList.add('current');
+                    if (!selection.item)
+                        selection.item = selection.section.blankLines.last();
+                    selection.item.htmlTag.classList.add('current');
                 }
             }
             function getLineFormat(line, formatsToCheck = null)
@@ -613,6 +635,39 @@
                     }
                 }
                 return formatsToCheck ? null : { format: formats.line.default, match: { l: '', r: line } };
+            }
+            function detectInlineFormats(line)
+            {
+                let text = line.right;
+                let position = line.pos;
+                let parts = [];
+                let active = {};
+                while (true) {
+                    let next = null;
+                    for (let format of inlineFormats) {
+                        let tmp = text.match(format.pattern);
+                        if (tmp && (!next || (tmp.index < next.match.index) || (tmp.index === next.match.index && format.count > next.count)))
+                            next = { match: tmp, format: format };
+                    }
+                    if (!next)
+                        break;
+                    let splitPos = next.match.index + next.match[next.format.splitAfter].length;
+                    let part = text.substr(0, splitPos - next.format.count);
+                    parts.push({ text: part, pos: position, classList: Object.keys(active) });
+                    position += part.length;
+
+                    part = text.substr(splitPos - next.format.count, next.format.count);
+                    parts.push({ text: part, pos: position, classList: ['fmt'] });
+                    position += next.format.count;
+
+                    text = text.substr(splitPos);
+                    if (next.format.start || (next.format.toggle && !active[next.format.className]))
+                        active[next.format.className] = true;
+                    else if (next.format.end || (next.format.toggle && active[next.format.className]))
+                        delete active[next.format.className];
+                }
+                parts.push({ text: text, pos: position, classList: Object.keys(active) });
+                return parts;
             }
             Object.defineProperty(Array.prototype, 'last', {
                 value: function() { return this.length ? this[this.length - 1] : null; },
