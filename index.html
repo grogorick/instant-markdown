@@ -117,7 +117,7 @@
                 padding-left: 10pt;
             }
 
-            #display .ul {
+            #display .ul ul {
                 margin-left: calc(var(--format-width) + 12pt);
             }
             #display .ul li span.left {
@@ -532,11 +532,16 @@
                         for (let c in section.blankLines) {
                             let line = section.blankLines[c];
                             let tag = document.createElement(formats.line.default.innerTag);
-                                let span = document.createElement('span');
-                                span.classList.add('right');
-                                span.innerHTML = line.text;
-                                tag.appendChild(span);
-                                line.htmlTag = span;
+                                let spanLeft = document.createElement('span');
+                                spanLeft.classList.add('left');
+                                spanLeft.innerHTML = line.left;
+                                tag.appendChild(spanLeft);
+
+                                let spanRight = document.createElement('span');
+                                spanRight.classList.add('right');
+                                spanRight.innerHTML = line.text;
+                                tag.appendChild(spanRight);
+                                line.htmlTag = spanRight;
                             section.htmlTag.appendChild(tag);
                             section.blankLines[c] = { lines: [line], htmlTag: tag, pos: line.pos };
                         }
@@ -567,32 +572,48 @@
                     selection.section = sections.last();
                 selection.section.htmlTag.classList.add('current');
 
-                // item
+                // item/lines
                 if (selection.section.blankLinesPos > cursorPos) {
-                    for (let c in selection.section.content) {
-                        let item = selection.section.content[c];
+                    for (let i in selection.section.content) {
+                        let item = selection.section.content[i];
                         if (item.pos > cursorPos) {
-                            selection.item = selection.section.content[c - 1];
+                            selection.item = selection.section.content[i - 1];
                             break;
                         }
                     }
                     if (!selection.item)
                         selection.item = selection.section.content.last();
                     selection.item.htmlTag.classList.add('current');
+                }
 
-                    // line
-                    for (let l in selection.item.lines) {
-                        let line = selection.item.lines[l];
-                        if (line.pos > cursorPos) {
-                            selection.line = selection.item.lines[l - 1];
+                // blank lines
+                else {
+                    for (let i in selection.section.blankLines) {
+                        let item = selection.section.blankLines[i];
+                        if (item.pos > cursorPos) {
+                            selection.item = selection.section.blankLines[i - 1];
                             break;
                         }
                     }
-                    if (!selection.line)
-                        selection.line = selection.item.lines.last();
-                    selection.line.htmlTag.classList.add('current');
+                    if (!selection.item)
+                        selection.item = selection.section.blankLines.last();
+                    selection.item.htmlTag.classList.add('current');
+                }
 
-                    // inline part
+                // line
+                for (let l in selection.item.lines) {
+                    let line = selection.item.lines[l];
+                    if (line.pos > cursorPos) {
+                        selection.line = selection.item.lines[l - 1];
+                        break;
+                    }
+                }
+                if (!selection.line)
+                    selection.line = selection.item.lines.last();
+                selection.line.htmlTag.classList.add('current');
+
+                // inline part
+                if (selection.line.rightParts) {
                     for (let p in selection.line.rightParts) {
                         let part = selection.line.rightParts[p];
                         if (part.pos > cursorPos) {
@@ -603,20 +624,6 @@
                     if (!selection.inlinePart)
                         selection.inlinePart = selection.line.rightParts.last();
                     selection.inlinePart.htmlTag.classList.add('current');
-                }
-
-                // blank line
-                else {
-                    for (let c in selection.section.blankLines) {
-                        let oc = selection.section.blankLines[c];
-                        if (oc.pos > cursorPos) {
-                            selection.item = selection.section.blankLines[c - 1];
-                            break;
-                        }
-                    }
-                    if (!selection.item)
-                        selection.item = selection.section.blankLines.last();
-                    selection.item.htmlTag.classList.add('current');
                 }
             }
             function getLineFormat(line, formatsToCheck = null)
