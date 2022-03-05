@@ -248,6 +248,8 @@
 
             let cookies = Object.assign({}, ...document.cookie.split(';').map(c => { c = c.split('='); return { [c[0].trim()]: decodeURIComponent(c[1]) }; }));
 
+            let inAppMode = window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: minimal-ui)').matches;
+
             function init()
             {
                 input = document.querySelector('#input');
@@ -384,7 +386,7 @@
                 let reader = new FileReader();
                 reader.addEventListener('load', () => {
                     reset(false);
-                    document.title = currentFileHandle.name + ' • ' + docTitle;
+                    document.title = currentFileHandle.name + (!inAppMode ? ' - ' + docTitle : '');
                     input.value = reader.result;
                     updateMarkdown();
                     console.log('file loaded: ' + currentFileHandle.name);
@@ -403,7 +405,7 @@
                 await writableStream.write(input.value);
                 await writableStream.close();
                 fileChanged = false;
-                document.title = currentFileHandle.name + ' • ' + docTitle;
+                document.title = currentFileHandle.name + (!inAppMode ? ' - ' + docTitle : '');
                 console.log('file saved: ' + currentFileHandle.name);
             }
             function updateMarkdown()
