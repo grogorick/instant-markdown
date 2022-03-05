@@ -4,7 +4,8 @@
         <style>
             :root {
                 --format-width: 50pt;
-                --format-color: #80808099;
+                --line-format-color: #80808099;
+                --inline-format-color: #80808099;
                 --highlight-section-color: #057EAE11;
                 --highlight-line-color: #057EAE33;
                 --heading-border-color: #80808033;
@@ -41,7 +42,7 @@
             #display span.left {
                 display: inline-block;
                 width: var(--format-width);
-                color: var(--format-color);
+                color: var(--line-format-color);
             }
             #display span.right {
                 display: inline-block;
@@ -126,6 +127,17 @@
             }
 
 
+            #display span.fmt {
+                color: var(--inline-format-color);
+            }
+            #display span.bold {
+                font-weight: bold;
+            }
+            #display span.italic {
+                font-style: italic;
+            }
+
+
             #start-info {
                 display: inline-block;
                 position: relative;
@@ -195,20 +207,31 @@
                     ul:     { pattern: /^(-|\*)($|\s+(.*)$)/, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
                     hr:     { pattern: /^(---)()$/, innerTag: 'div' }
                 },
-                inline: {}};
-            let formatDefaults = {
-                line: { match: { l: 1, r: 2 }, innerTag: 'p' },
-                inline: {}
-            };
-            for (let ff in formats) {
-                for (let f in formats[ff]) {
-                    formats[ff][f].className = f;
-                    formats[ff][f] = Object.assign({}, formatDefaults[ff], formats[ff][f]);
-                }
+                inline: {
+                    bold: [
+                        { pattern: /((^|\s)(\*\*|__))\S/, splitAfter: 1, count: 2, start: true },
+                        { pattern: /(\S(\*\*|__))\S/, splitAfter: 1, count: 2, toggle: true },
+                        { pattern: /(\S(\*\*|__))(\s|$)/, splitAfter: 1, count: 2, end: true }],
+                    italic: [
+                        { pattern: /((^|\s)(\*|_))\S/, splitAfter: 1, count: 1, start: true },
+                        { pattern: /(\S\*)\S/, splitAfter: 1, count: 1, toggle: true },
+                        { pattern: /(\S(\*|_))(\s|$)/, splitAfter: 1, count: 1, end: true }
+                    ]}};
+            for (let f in formats.line) {
+                formats.line[f].className = f;
+                formats.line[f] = Object.assign({}, { match: { l: 1, r: 2 }, innerTag: 'p' }, formats.line[f]);
             }
             let lineFormats_all = Object.values(formats.line);
             let lineFormats_singleline = lineFormats_all.filter(f => !f.multiline);
             let lineFormats_listItem = lineFormats_all.filter(f => f.listItem);
+
+            let inlineFormats = [];
+            for (let f in formats.inline) {
+                for (format of formats.inline[f]) {
+                    format.className = f;
+                    inlineFormats.push(format);
+                }
+            }
 
             let input = null;
             let display = null;
@@ -399,9 +422,7 @@
                 let newSection = values => Object.assign({ pos: position, outerPos: position, format: formats.line.default, innerContent: [], outerContent: [] }, values);
                 let lines = input.value.split('\n');
 
-                // if (e.inputType === 'insertLineBreak') {}
-
-                // parse input text
+                // parse input text to get sections with line formats
                 let startNewSection = true;
                 lines.forEach(line =>
                 {
@@ -452,7 +473,7 @@
                     }
                     position = nextPosition;
                 });
-                console.log(sections);
+                // console.log(sections);
 
                 // generate HTML
                 sections.forEach(section =>
@@ -478,7 +499,7 @@
                                 tag.appendChild(spanLeft);
                                 let spanRight = document.createElement('span');
                                 spanRight.classList.add('right');
-                                spanRight.innerHTML = line.right;
+                                spanRight.innerHTML = applyInlineFormats(line.right);
                                 tag.appendChild(spanRight);
                                 line.htmlTag = spanRight;
                             }
@@ -492,7 +513,7 @@
                             let tag = document.createElement(formats.line.default.innerTag);
                                 let span = document.createElement('span');
                                 span.classList.add('right');
-                                span.innerHTML = line.text;
+                                span.innerHTML = applyInlineFormats(line.text);
                                 tag.appendChild(span);
                                 line.htmlTag = span;
                             section.htmlTag.appendChild(tag);
@@ -502,6 +523,31 @@
                     display.appendChild(section.htmlTag);
                 });
                 updateSelection();
+            }
+            function applyInlineFormats(text) {
+                let parts = [];
+                let active = {};
+                while (true) {
+                    let next = null;
+                    for (let format of inlineFormats) {
+                        let tmp = text.match(format.pattern);
+                        if (tmp && (!next || (tmp.index < next.match.index) || (tmp.index === next.match.index && format.count > next.count)))
+                            next = { match: tmp, format: format };
+                    }
+                    if (!next)
+                        break;
+                    let splitPos = next.match.index + next.match[next.format.splitAfter].length;
+                    let part = text.substr(0, splitPos - next.format.count) +
+                        '<span class="fmt">' + text.substr(splitPos - next.format.count, next.format.count) + '</span>';
+                    parts.push({ text: part, classList: Object.keys(active) });
+                    text = text.substr(splitPos);
+                    if (next.format.start || (next.format.toggle && !active[next.format.className]))
+                        active[next.format.className] = true;
+                    else if (next.format.end || (next.format.toggle && active[next.format.className]))
+                        delete active[next.format.className];
+                }
+                parts.push({ text: text, classList: Object.keys(active) });
+                return parts.map(p => '<span class="' + p.classList.join(' ') + '">' + p.text + '</span>').join('');
             }
             function updateSelection()
             {
