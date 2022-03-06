@@ -27,14 +27,23 @@
 
 
             #display, #input, #settings {
-                position: absolute;
                 left: 0;
                 top: 0;
+            }
+            #display {
+                position: absolute;
+                right: 0;
+            }
+            #input, #settings {
+                position: fixed;
                 right: 0;
                 bottom: 0;
             }
             #input {
-                opacity: .01;
+                opacity: 0;
+            }
+            #settings {
+                overflow-y: auto;
             }
 
 
