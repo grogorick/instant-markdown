@@ -8,9 +8,9 @@
                 --inline-format-color: #80808099;
 
                 --highlight-section-color: #057EAE11;
-                --highlight-item-color: #057EAE22;
-                --highlight-line-color: #057EAE33;
-                --highlight-part-color: #057EAE55;
+                --highlight-item-color: #057EAE11;
+                --highlight-line-color: #057EAE11;
+                --highlight-part-color: #057EAE22;
 
                 --heading-border-color: #80808033;
                 --quote-border-color: #80808099;
@@ -145,6 +145,28 @@
             }
             #display span.italic {
                 font-style: italic;
+            }
+
+            #display i.cursor {
+                position: relative;
+            }
+            #display i.cursor::after {
+                position: absolute;
+                margin-left: -1pt;
+                content: ' ';
+                display: inline-block;
+                height: 1em;
+                bottom: 0;
+                border-left: 2px solid black;
+
+                animation-name: cursor;
+                animation-duration: 2s;
+                animation-iteration-count: infinite;
+            }
+            @keyframes cursor {
+                20% { opacity: 1; }
+                50% { opacity: 0; }
+                80% { opacity: 1; }
             }
 
 
@@ -556,6 +578,7 @@
                     return;
 
                 document.querySelectorAll('#display .current').forEach(el => el.classList.remove('current'));
+                display.querySelectorAll('.cursor').forEach(el => el.remove());
 
                 let cursorPos = input.selectionStart;
                 selection = {};
@@ -624,6 +647,14 @@
                     if (!selection.inlinePart)
                         selection.inlinePart = selection.line.rightParts.last();
                     selection.inlinePart.htmlTag.classList.add('current');
+                }
+
+                // cursor
+                let cp = selection.inlinePart || selection.line || selection.item; // cursor parent
+                if (cp) {
+                    cp.htmlTag.innerHTML =  cp.htmlTag.innerHTML.substr(0, cursorPos - cp.pos) +
+                                            '<i class="cursor"></i>' +
+                                            cp.htmlTag.innerHTML.substr(cursorPos - cp.pos);
                 }
             }
             function getLineFormat(line, formatsToCheck = null)
