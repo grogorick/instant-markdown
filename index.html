@@ -180,6 +180,9 @@
             #display span.italic {
                 font-style: italic;
             }
+            #display span.strike {
+                text-decoration: line-through;
+            }
             #display span.code {
                 font-family: monospace;
                 border: 1px solid var(--code-border-color);
@@ -290,13 +293,16 @@
                     italic: [
                         { pattern: /((^|\s)(\*|_))\S/, start: true },
                         { pattern: /(\S\*)\S/, toggle: true },
-                        { pattern: /(\S(\*|_))(\s|$)/, end: true }
-                    ],
+                        { pattern: /(\S(\*|_))(\s|$)/, end: true }],
+                    strike: [
+                        { pattern: /((^|\s)~~)\S/, start: true, count: 2 },
+                        { pattern: /(\S~~)\S/, toggle: true, count: 2 },
+                        { pattern: /(\S~~)(\s|$)/, end: true, count: 2 }],
                     code: [
                         { pattern: /((^|\s)`)\S/, start: true },
                         { pattern: /(\S`)\S/, toggle: true },
-                        { pattern: /(\S`)(\s|$)/, end: true }
-                    ]}};
+                        { pattern: /(\S`)(\s|$)/, end: true }]
+                    }};
             for (let f in formats.line) {
                 formats.line[f].className = f;
                 formats.line[f] = Object.assign({ match: { l: 1, r: 2 }, innerTag: 'p' }, formats.line[f]);
