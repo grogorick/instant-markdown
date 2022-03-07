@@ -264,15 +264,15 @@
             let formats = {
                 line: {
                     default:{ multiline: true },
-                    h1:     { pattern: /^(#)($|\s+.*$)/ },
-                    h2:     { pattern: /^(##)($|\s+.*$)/ },
-                    h3:     { pattern: /^(###)($|\s+.*$)/ },
-                    h4:     { pattern: /^(####)($|\s+.*$)/ },
-                    h5:     { pattern: /^(#####)($|\s+.*$)/ },
-                    h6:     { pattern: /^(######)($|\s+.*$)/ },
+                    h1:     { pattern: /^(#(\s|$))(.*$)/ },
+                    h2:     { pattern: /^(##(\s|$))(.*$)/ },
+                    h3:     { pattern: /^(###(\s|$))(.*$)/ },
+                    h4:     { pattern: /^(####(\s|$))(.*$)/ },
+                    h5:     { pattern: /^(#####(\s|$))(.*$)/ },
+                    h6:     { pattern: /^(######(\s|$))(.*$)/ },
                     quote:  { pattern: /^(>)($|\s*.*$)/, multiline: true, outerTag: 'div' },
                     code:   { pattern: /^(```)($|\s*.*$)/, outerTag: 'code' },
-                    ul:     { pattern: /^(-|\*)($|\s+.*$)/, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
+                    ul:     { pattern: /^((-|\*)(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
                     hr:     { pattern: /^(---)()$/, innerTag: 'div' }
                 },
                 inline: {
@@ -498,17 +498,24 @@
                 let startNewSection = true;
                 lines.forEach(line =>
                 {
-                    let nextPosition = position + 1 + line.length;
-                    line = { pos: position, text: line, left: '', right: line };
-                    let lineFormatMatch = getLineFormat(line.text);
                     let prevSection = sections.length ? sections.last() : null;
                     let prevFormat = prevSection ? prevSection.format : null;
+
+                    let nextPosition = position + 1 + line.length;
+                    line = {
+                        pos: position,
+                        text: line,
+                        left: { pos: position, text: '' },
+                        right: { pos: position, text: line }
+                    };
+                    let lineFormatMatch = getLineFormat(line.text);
+                    line.left.text = lineFormatMatch.match.l;
+                    line.right.text = lineFormatMatch.match.r;
+                    line.right.pos += line.left.text.length;
 
                     // code section
                     let prevIsCode = prevFormat && prevFormat === formats.line.code;
                     if (lineFormatMatch.format === formats.line.code && (!prevIsCode || !lineFormatMatch.match.r.trim().length)) {
-                        line.left = lineFormatMatch.match.l;
-                        line.right = lineFormatMatch.match.r;
                         if (!prevIsCode)
                             sections.push(newSection({ format: lineFormatMatch.format, content: [[line]], blankLinesPos: nextPosition }));
                         else {
@@ -532,8 +539,6 @@
                         startNewSection = true;
                     }
                     else {
-                        line.left = lineFormatMatch.match.l;
-                        line.right = lineFormatMatch.match.r;
                         // formatted
                         if (lineFormatMatch.format !== formats.line.default) {
                             let sameAsPrevious = prevFormat && prevFormat === lineFormatMatch.format && !prevSection.blankLines.length;
@@ -586,13 +591,14 @@
                                 let line = lines[l];
                                 let spanLeft = document.createElement('span');
                                 spanLeft.classList.add('left');
-                                spanLeft.innerHTML = line.left;
+                                spanLeft.innerHTML = line.left.text;
                                 tag.appendChild(spanLeft);
+                                line.left.htmlTag = spanLeft;
 
                                 let spanRight = document.createElement('span');
                                 spanRight.classList.add('right');
-                                line.rightParts = detectInlineFormats(line);
-                                for (let part of line.rightParts) {
+                                line.right.parts = detectInlineFormats(line);
+                                for (let part of line.right.parts) {
                                     let spanPart = document.createElement('span');
                                     spanPart.className = part.classList.join(' ');
                                     spanPart.innerHTML = part.text;
@@ -600,7 +606,7 @@
                                     part.htmlTag = spanPart;
                                 }
                                 tag.appendChild(spanRight);
-                                line.htmlTag = spanRight;
+                                line.right.htmlTag = spanRight;
                             }
                             container.appendChild(tag);
                             section.content[c] = { lines: lines, htmlTag: tag, pos: lines[0].pos };
@@ -612,14 +618,14 @@
                             let tag = document.createElement(formats.line.default.innerTag);
                                 let spanLeft = document.createElement('span');
                                 spanLeft.classList.add('left');
-                                spanLeft.innerHTML = line.left;
                                 tag.appendChild(spanLeft);
+                                line.left.htmlTag = spanLeft;
 
                                 let spanRight = document.createElement('span');
                                 spanRight.classList.add('right');
                                 spanRight.innerHTML = line.text;
                                 tag.appendChild(spanRight);
-                                line.htmlTag = spanRight;
+                                line.right.htmlTag = spanRight;
                             section.htmlTag.appendChild(tag);
                             section.blankLines[c] = { lines: [line], htmlTag: tag, pos: line.pos };
                         }
@@ -651,7 +657,7 @@
                     selection.section = sections.last();
                 selection.section.htmlTag.classList.add('current');
 
-                // item/lines
+                // item
                 if (selection.section.blankLinesPos > cursorPos) {
                     for (let i in selection.section.content) {
                         let item = selection.section.content[i];
@@ -689,24 +695,30 @@
                 }
                 if (!selection.line)
                     selection.line = selection.item.lines.last();
-                selection.line.htmlTag.classList.add('current');
+                selection.line.right.htmlTag.classList.add('current');
+
+                // format
+                if (selection.line.right.pos > cursorPos) {
+                    selection.format = selection.line.left;
+                    selection.format.htmlTag.classList.add('current');
+                }
 
                 // inline part
-                if (selection.line.rightParts) {
-                    for (let p in selection.line.rightParts) {
-                        let part = selection.line.rightParts[p];
+                else if (selection.line.right.parts) {
+                    for (let p in selection.line.right.parts) {
+                        let part = selection.line.right.parts[p];
                         if (part.pos > cursorPos) {
-                            selection.inlinePart = selection.line.rightParts[p - 1];
+                            selection.inlinePart = selection.line.right.parts[p - 1];
                             break;
                         }
                     }
                     if (!selection.inlinePart)
-                        selection.inlinePart = selection.line.rightParts.last();
+                        selection.inlinePart = selection.line.right.parts.last();
                     selection.inlinePart.htmlTag.classList.add('current');
                 }
 
                 // cursor
-                let cp = selection.inlinePart || selection.line || selection.item; // cursor parent
+                let cp = selection.format || selection.inlinePart || selection.line.right || selection.item; // cursor parent
                 cp.htmlTag.innerHTML =  cp.htmlTag.innerHTML.substr(0, cursorPos - cp.pos) +
                                         '<i class="cursor"></i>' +
                                         cp.htmlTag.innerHTML.substr(cursorPos - cp.pos);
@@ -741,8 +753,8 @@
             }
             function detectInlineFormats(line)
             {
-                let text = line.right;
-                let position = line.pos;
+                let text = line.right.text;
+                let position = line.right.pos;
                 let parts = [];
                 let active = {};
                 while (true) {
