@@ -14,6 +14,7 @@
 
                 --heading-border-color: #80808033;
                 --quote-border-color: #80808099;
+                --code-border-color: #80808022;
                 --hr-color: #80808033;
             }
 
@@ -124,6 +125,30 @@
             #display .quote div span.right {
                 border-left: 1px solid var(--quote-border-color);
                 padding-left: 15pt;
+            }
+
+            #display .code code span.right {
+                border-left: 1px solid var(--code-border-color);
+                border-right: 1px solid var(--code-border-color);
+                padding: 0 5pt;
+                background: #80808011;
+            }
+            #display .code code p:first-child span.right {
+                color: var(--inline-format-color);
+            }
+            #display .code code p:first-child span.right,
+            #display .code code p:last-child span.right {
+                border: none;
+                padding: 0;
+                background: none;
+            }
+            #display .code code p:nth-child(2) span.right {
+                border-top: 1px solid var(--code-border-color);
+                padding-top: 5pt;
+            }
+            #display .code code p:nth-last-child(2) span.right {
+                border-bottom: 1px solid var(--code-border-color);
+                padding-bottom: 5pt;
             }
 
             #display .ul ul {
@@ -246,6 +271,7 @@
                     h5:     { pattern: /^(#####)($|\s+(.*)$)/ },
                     h6:     { pattern: /^(######)($|\s+(.*)$)/ },
                     quote:  { pattern: /^(>)($|\s*(.*)$)/, multiline: true, outerTag: 'div' },
+                    code:   { pattern: /^(```)($|\s*.*$)/, outerTag: 'code' },
                     ul:     { pattern: /^(-|\*)($|\s+(.*)$)/, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
                     hr:     { pattern: /^(---)()$/, innerTag: 'div' }
                 },
@@ -474,9 +500,31 @@
                 {
                     let nextPosition = position + 1 + line.length;
                     line = { pos: position, text: line, left: '', right: line };
+                    let lineFormatMatch = getLineFormat(line.text);
+                    let prevSection = sections.length ? sections.last() : null;
+                    let prevFormat = prevSection ? prevSection.format : null;
+
+                    // code section
+                    let prevIsCode = prevFormat && prevFormat === formats.line.code;
+                    if (lineFormatMatch.format === formats.line.code && (!prevIsCode || !lineFormatMatch.match.r.trim().length)) {
+                        line.left = lineFormatMatch.match.l;
+                        line.right = lineFormatMatch.match.r;
+                        if (!prevIsCode)
+                            sections.push(newSection({ format: lineFormatMatch.format, content: [[line]], blankLinesPos: nextPosition }));
+                        else {
+                            prevSection.content.push([line]);
+                            prevSection.finished = true;
+                            startNewSection = true;
+                            prevSection.blankLinesPos = nextPosition;
+                        }
+                    }
+                    else if (prevIsCode && !prevSection.finished) {
+                        prevSection.content.push([line]);
+                        prevSection.blankLinesPos = nextPosition;
+                    }
 
                     // empty line
-                    if (line.text.trim() === '') {
+                    else if (line.text.trim() === '') {
                         if (!sections.length)
                             sections.push(newSection({ blankLines: [line] }));
                         else
@@ -484,11 +532,8 @@
                         startNewSection = true;
                     }
                     else {
-                        let lineFormatMatch = getLineFormat(line.text);
                         line.left = lineFormatMatch.match.l;
                         line.right = lineFormatMatch.match.r;
-                        let prevSection = sections.length ? sections.last() : null;
-                        let prevFormat = prevSection ? prevSection.format : null;
                         // formatted
                         if (lineFormatMatch.format !== formats.line.default) {
                             let sameAsPrevious = prevFormat && prevFormat === lineFormatMatch.format && !prevSection.blankLines.length;
