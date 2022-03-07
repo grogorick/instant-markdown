@@ -284,22 +284,26 @@
                 },
                 inline: {
                     bold: [
-                        { pattern: /((^|\s)(\*\*|__))\S/, splitAfter: 1, count: 2, start: true },
-                        { pattern: /(\S(\*\*|__))\S/, splitAfter: 1, count: 2, toggle: true },
-                        { pattern: /(\S(\*\*|__))(\s|$)/, splitAfter: 1, count: 2, end: true }],
+                        { pattern: /((^|\s)(\*\*|__))\S/, start: true, count: 2 },
+                        { pattern: /(\S(\*\*|__))\S/, toggle: true, count: 2 },
+                        { pattern: /(\S(\*\*|__))(\s|$)/, end: true, count: 2 }],
                     italic: [
-                        { pattern: /((^|\s)(\*|_))\S/, splitAfter: 1, count: 1, start: true },
-                        { pattern: /(\S\*)\S/, splitAfter: 1, count: 1, toggle: true },
-                        { pattern: /(\S(\*|_))(\s|$)/, splitAfter: 1, count: 1, end: true }
+                        { pattern: /((^|\s)(\*|_))\S/, start: true },
+                        { pattern: /(\S\*)\S/, toggle: true },
+                        { pattern: /(\S(\*|_))(\s|$)/, end: true }
                     ],
                     code: [
-                        { pattern: /((^|\s)`)\S/, splitAfter: 1, count: 1, start: true },
-                        { pattern: /(\S`)\S/, splitAfter: 1, count: 1, toggle: true },
-                        { pattern: /(\S`)(\s|$)/, splitAfter: 1, count: 1, end: true }
+                        { pattern: /((^|\s)`)\S/, start: true },
+                        { pattern: /(\S`)\S/, toggle: true },
+                        { pattern: /(\S`)(\s|$)/, end: true }
                     ]}};
             for (let f in formats.line) {
                 formats.line[f].className = f;
-                formats.line[f] = Object.assign({}, { match: { l: 1, r: 2 }, innerTag: 'p' }, formats.line[f]);
+                formats.line[f] = Object.assign({ match: { l: 1, r: 2 }, innerTag: 'p' }, formats.line[f]);
+            }
+            for (let f in formats.inline) {
+                for (let p in formats.inline[f])
+                    formats.inline[f][p] = Object.assign({ splitAfter: 1, count: 1 }, formats.inline[f][p]);
             }
             let lineFormats_all = Object.values(formats.line);
             let lineFormats_singleline = lineFormats_all.filter(f => !f.multiline);
