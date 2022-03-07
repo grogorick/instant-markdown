@@ -267,15 +267,16 @@
         <script>
             let fileTypeDialogOption = { types: [{ description: 'Markdown', accept: { 'text/markdown': ['.md'] } }] };
             let scrollMargin = 50;
+            let match13 = { l: 1, r: 3 };
             let formats = {
                 line: {
                     default:{ multiline: true },
-                    h1:     { pattern: /^(#(\s|$))(.*$)/ },
-                    h2:     { pattern: /^(##(\s|$))(.*$)/ },
-                    h3:     { pattern: /^(###(\s|$))(.*$)/ },
-                    h4:     { pattern: /^(####(\s|$))(.*$)/ },
-                    h5:     { pattern: /^(#####(\s|$))(.*$)/ },
-                    h6:     { pattern: /^(######(\s|$))(.*$)/ },
+                    h1:     { pattern: /^(#(\s|$))(.*$)/, match: match13 },
+                    h2:     { pattern: /^(##(\s|$))(.*$)/, match: match13 },
+                    h3:     { pattern: /^(###(\s|$))(.*$)/, match: match13 },
+                    h4:     { pattern: /^(####(\s|$))(.*$)/, match: match13 },
+                    h5:     { pattern: /^(#####(\s|$))(.*$)/, match: match13 },
+                    h6:     { pattern: /^(######(\s|$))(.*$)/, match: match13 },
                     quote:  { pattern: /^(>)($|\s*.*$)/, multiline: true, outerTag: 'div' },
                     code:   { pattern: /^(```)($|\s*.*$)/, outerTag: 'code' },
                     ul:     { pattern: /^((-|\*)(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
