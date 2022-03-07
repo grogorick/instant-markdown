@@ -180,6 +180,12 @@
             #display span.italic {
                 font-style: italic;
             }
+            #display span.code {
+                font-family: monospace;
+                border: 1px solid var(--code-border-color);
+                padding: 2pt 5pt;
+                background: #80808011;
+            }
 
             #display i.cursor {
                 position: relative;
@@ -284,6 +290,11 @@
                         { pattern: /((^|\s)(\*|_))\S/, splitAfter: 1, count: 1, start: true },
                         { pattern: /(\S\*)\S/, splitAfter: 1, count: 1, toggle: true },
                         { pattern: /(\S(\*|_))(\s|$)/, splitAfter: 1, count: 1, end: true }
+                    ],
+                    code: [
+                        { pattern: /((^|\s)`)\S/, splitAfter: 1, count: 1, start: true },
+                        { pattern: /(\S`)\S/, splitAfter: 1, count: 1, toggle: true },
+                        { pattern: /(\S`)(\s|$)/, splitAfter: 1, count: 1, end: true }
                     ]}};
             for (let f in formats.line) {
                 formats.line[f].className = f;
