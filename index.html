@@ -5,12 +5,17 @@
             :root {
                 --format-width: 50pt;
                 --line-format-color: #80808099;
+                --line-format-background: transparent;
                 --inline-format-color: #80808099;
 
                 --highlight-section-color: transparent;
                 --highlight-item-color: transparent;
                 --highlight-line-color: #057EAE22;
                 --highlight-inline-part-color: transparent;
+
+                --text-color: black;
+                --link-color: #057EAE;
+                --background: white;
 
                 --heading-border-color: #80808033;
                 --quote-border-color: #80808099;
@@ -19,6 +24,9 @@
             }
 
 
+            body {
+                background: var(--background);
+            }
             textarea:focus {
                 outline: none;
             }
@@ -53,10 +61,15 @@
                 padding: 0;
             }
 
+            #display {
+                color: var(--text-color);
+            }
+
             #display span.left {
                 display: inline-block;
                 width: var(--format-width);
                 color: var(--line-format-color);
+                background: var(--line-format-background);
             }
             #display span.right {
                 display: inline-block;
@@ -190,6 +203,16 @@
                 background: #80808011;
             }
 
+
+            #display .right a.link {
+                color: var(--link-color);
+                text-decoration: none;
+            }
+            #display .right a.link:hover {
+                text-decoration: underline;
+            }
+
+
             #display i.cursor {
                 position: relative;
             }
@@ -302,7 +325,9 @@
                         { pattern: /((^|\s)`)\S/, start: true },
                         { pattern: /(\S`)\S/, toggle: true },
                         { pattern: /(\S`)(\s|$)/, end: true }]
-                    }};
+                    },
+                link: { pattern: /\[(.*)\]\((.*)\)/, match: { text: 1, url: 2 } }
+            };
             for (let f in formats.line) {
                 formats.line[f].className = f;
                 formats.line[f] = Object.assign({ match: { l: 1, r: 2 }, innerTag: 'p' }, formats.line[f]);
@@ -617,13 +642,28 @@
                                 tag.appendChild(spanLeft);
                                 line.left.htmlTag = spanLeft;
 
+                                line.right.parts = [];
+                                let classList = new Set();
+                                for (let part1 of detectSpecialTags(line.right.text, line.right.pos, classList)) {
+                                    if (part1.classList.includes('fmt'))
+                                        line.right.parts.push(part1);
+                                    else {
+                                        for (let part2 of detectInlineFormats(part1.text, part1.pos, new Set(part1.classList))) {
+                                            part2.tag = Object.assign(part1.tag || {}, part2.tag || {});
+                                            line.right.parts.push(part2);
+                                        }
+                                    }
+                                }
                                 let spanRight = document.createElement('span');
                                 spanRight.classList.add('right');
-                                line.right.parts = detectInlineFormats(line);
                                 for (let part of line.right.parts) {
-                                    let spanPart = document.createElement('span');
+                                    let spanPart = document.createElement((part.tag && part.tag.type) ? part.tag.type : 'span');
                                     spanPart.className = part.classList.join(' ');
                                     spanPart.innerHTML = part.text;
+                                    if (part.tag && part.tag.attrs) {
+                                        for (let [attr, value] of Object.entries(part.tag.attrs))
+                                            spanPart[attr] = value;
+                                    }
                                     spanRight.appendChild(spanPart);
                                     part.htmlTag = spanPart;
                                 }
@@ -773,12 +813,9 @@
                 }
                 return formatsToCheck ? null : { format: formats.line.default, match: { l: '', r: line } };
             }
-            function detectInlineFormats(line)
+            function detectInlineFormats(text, position, classList = new Set())
             {
-                let text = line.right.text;
-                let position = line.right.pos;
                 let parts = [];
-                let active = {};
                 while (true) {
                     let next = null;
                     for (let format of inlineFormats) {
@@ -790,7 +827,7 @@
                         break;
                     let splitPos = next.match.index + next.match[next.format.splitAfter].length;
                     let part = text.substr(0, splitPos - next.format.count);
-                    parts.push({ text: part, pos: position, classList: Object.keys(active) });
+                    parts.push({ text: part, pos: position, classList: [...classList.values()] });
                     position += part.length;
 
                     part = text.substr(splitPos - next.format.count, next.format.count);
@@ -798,12 +835,38 @@
                     position += next.format.count;
 
                     text = text.substr(splitPos);
-                    if (next.format.start || (next.format.toggle && !active[next.format.className]))
-                        active[next.format.className] = true;
-                    else if (next.format.end || (next.format.toggle && active[next.format.className]))
-                        delete active[next.format.className];
+                    if (next.format.start || (next.format.toggle && !classList.has(next.format.className)))
+                        classList.add(next.format.className);
+                    else if (next.format.end || (next.format.toggle && classList.has(next.format.className)))
+                        classList.delete(next.format.className);
                 }
-                parts.push({ text: text, pos: position, classList: Object.keys(active) });
+                parts.push({ text: text, pos: position, classList: [...classList.values()] });
+                return parts;
+            }
+            function detectSpecialTags(text, position, classList = new Set())
+            {
+                let parts = [];
+                let updatePos = () => position = parts.last().pos + parts.last().text.length;
+                while (true) {
+                    let match = text.match(formats.link.pattern);
+                    if (match) {
+                        let linkText = match[formats.link.match.text];
+                        let linkURL = match[formats.link.match.url];
+                        parts.push({ text: text.substr(0, match.index), pos: position, classList: [...classList.values()] }); updatePos();
+                        parts.push({ text: '[', pos: position, classList: ['fmt'] }); updatePos();
+                        for (let part of detectInlineFormats(linkText, position, classList)) {
+                            part.tag = { type: 'a', attrs: { href: linkURL }};
+                            part.classList.push('link');
+                            parts.push(part);
+                        }
+                        updatePos();
+                        parts.push({ text: '](' + linkURL + ')', pos: position, classList: ['fmt'] }); updatePos();
+                        text = text.substr(match.index + match[0].length);
+                    }
+                    else
+                        break;
+                }
+                parts.push({ text: text, pos: position, classList: [...classList.values()] });
                 return parts;
             }
             Object.defineProperty(Array.prototype, 'last', {
