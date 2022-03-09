@@ -322,7 +322,7 @@
                         { pattern: /(\S~~)\S/, toggle: true, count: 2 },
                         { pattern: /(\S~~)(\s|$)/, end: true, count: 2 }],
                     code: [
-                        { pattern: /((^|[^`])`)([^`]|$)/, toggle: true }]
+                        { pattern: /((^|[^`\\])`)([^`]|$)/, toggle: true }]
                     },
                 link: { pattern: /\[(.*)\]\((.*)\)/, match: { text: 1, url: 2 } }
             };
@@ -817,6 +817,9 @@
                 while (true) {
                     let next = null;
                     for (let format of inlineFormats) {
+                        if (format.className !== formats.inline.code[0].className && classList.has(formats.inline.code[0].className)) {
+                            continue;
+                        }
                         let tmp = text.match(format.pattern);
                         if (tmp && (!next || (tmp.index < next.match.index) || (tmp.index === next.match.index && format.count > next.count)))
                             next = { match: tmp, format: format };
