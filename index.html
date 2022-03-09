@@ -324,7 +324,11 @@
                     code: [
                         { pattern: /((^|[^`\\])`)([^`]|$)/, toggle: true }]
                     },
-                link: { pattern: /\[(.*)\]\((.*)\)/, match: { text: 1, url: 2 } }
+                link: {
+                    explicit:
+                        { pattern: /\[(.*)\]\((.*)\)/, match: { text: 1, url: 2 }},
+                    implicit:
+                        { pattern: /(^|[\s\\|/([{])(https?:\/\/[^\s\\|)\]}]+)([\s\\|)\]}]|$)/, match: { before: 1, url: 2, after: 3 }}}
             };
             for (let f in formats.line) {
                 formats.line[f].className = f;
@@ -857,7 +861,7 @@
                         classList.delete(next.format.className);
                 }
                 if (text.length)
-                parts.push({ text: text, pos: position, classList: [...classList.values()] });
+                    parts.push({ text: text, pos: position, classList: [...classList.values()] });
                 return parts;
             }
             function detectSpecialTags(text, position, classList = new Set())
@@ -865,26 +869,36 @@
                 let parts = [];
                 let updatePos = () => position = parts.last().pos + parts.last().text.length;
                 while (true) {
-                    let match = text.match(formats.link.pattern);
-                    if (match) {
-                        let linkText = match[formats.link.match.text];
-                        let linkURL = match[formats.link.match.url];
-                        parts.push({ text: text.substr(0, match.index), pos: position, classList: [...classList.values()] }); updatePos();
-                        parts.push({ text: '[', pos: position, classList: ['fmt'] }); updatePos();
-                        for (let part of detectInlineFormats(linkText, position, classList)) {
-                            part.tag = { type: 'a', attrs: { href: linkURL }};
-                            part.classList.push('link');
-                            parts.push(part);
+                    let linkExplicit = { m: text.match(formats.link.explicit.pattern), f: formats.link.explicit };
+                    let linkImplicit = { m: text.match(formats.link.implicit.pattern), f: formats.link.implicit };
+                    let match = linkExplicit.m ? (linkImplicit.m ? (linkExplicit.m.index < linkImplicit.m.index ? linkExplicit : linkImplicit) : linkExplicit) : linkImplicit;
+                    if (match.m) {
+                        let linkURL = match.m[match.f.match.url];
+                        if (match === linkExplicit) {
+                            let linkText = match.m[match.f.match.text];
+                            parts.push({ text: text.substr(0, match.m.index), pos: position, classList: [...classList.values()] }); updatePos();
+                            parts.push({ text: '[', pos: position, classList: ['fmt'] }); updatePos();
+                            for (let part of detectInlineFormats(linkText, position, classList)) {
+                                part.tag = { type: 'a', attrs: { href: linkURL }};
+                                part.classList.push('link');
+                                parts.push(part);
+                            }
+                            updatePos();
+                            parts.push({ text: '](' + linkURL + ')', pos: position, classList: ['fmt'] }); updatePos();
+                            text = text.substr(match.m.index + match.m[0].length);
                         }
-                        updatePos();
-                        parts.push({ text: '](' + linkURL + ')', pos: position, classList: ['fmt'] }); updatePos();
-                        text = text.substr(match.index + match[0].length);
+                        else if (match === linkImplicit) {
+                            parts.push({ text: text.substr(0, match.m.index) + match.m[match.f.match.before], pos: position, classList: [...classList.values()] }); updatePos();
+                            let tag = { type: 'a', attrs: { href: linkURL }};
+                            parts.push({ text: linkURL, pos: position, classList: [...classList.values(), 'link'], tag: tag }); updatePos();
+                            text = text.substr(match.m.index + match.m[0].length - match.m[match.f.match.after].length);
+                        }
                     }
                     else
                         break;
                 }
                 if (text.length)
-                parts.push({ text: text, pos: position, classList: [...classList.values()] });
+                    parts.push({ text: text, pos: position, classList: [...classList.values()] });
                 return parts;
             }
             Object.defineProperty(Array.prototype, 'last', {
