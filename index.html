@@ -856,6 +856,7 @@
                     else if (next.format.end || (next.format.toggle && classList.has(next.format.className)))
                         classList.delete(next.format.className);
                 }
+                if (text.length)
                 parts.push({ text: text, pos: position, classList: [...classList.values()] });
                 return parts;
             }
@@ -882,6 +883,7 @@
                     else
                         break;
                 }
+                if (text.length)
                 parts.push({ text: text, pos: position, classList: [...classList.values()] });
                 return parts;
             }
