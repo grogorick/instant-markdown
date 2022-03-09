@@ -322,9 +322,7 @@
                         { pattern: /(\S~~)\S/, toggle: true, count: 2 },
                         { pattern: /(\S~~)(\s|$)/, end: true, count: 2 }],
                     code: [
-                        { pattern: /((^|\s)`)\S/, start: true },
-                        { pattern: /(\S`)\S/, toggle: true },
-                        { pattern: /(\S`)(\s|$)/, end: true }]
+                        { pattern: /((^|[^`])`)([^`]|$)/, toggle: true }]
                     },
                 link: { pattern: /\[(.*)\]\((.*)\)/, match: { text: 1, url: 2 } }
             };
@@ -827,6 +825,21 @@
                         break;
                     let splitPos = next.match.index + next.match[next.format.splitAfter].length;
                     let part = text.substr(0, splitPos - next.format.count);
+                    if (part.length && part.slice(-1) === `\\`) {
+                        if (part.length > 1) {
+                            parts.push({ text: part.slice(0, -1), pos: position, classList: [...classList.values()] });
+                            position += part.length - 1;
+                        }
+                        parts.push({ text: '\\', pos: position, classList: ['fmt'] });
+                        position += 1;
+
+                        part = text.substr(splitPos - next.format.count, next.format.count);
+                        parts.push({ text: part, pos: position, classList: [...classList.values()] });
+                        position += next.format.count;
+
+                        text = text.substr(splitPos);
+                        continue;
+                    }
                     parts.push({ text: part, pos: position, classList: [...classList.values()] });
                     position += part.length;
 
