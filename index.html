@@ -203,9 +203,17 @@
                 background: #80808011;
             }
 
+            span.eol-spaces {
+                color: var(--inline-format-color);
+                padding-bottom: 1px;
+                border-bottom: 1px solid var(--inline-format-color);
+                line-height: .7em;
+                vertical-align: top;
+            }
 
             #display .right a.link {
                 color: var(--link-color);
+                font-weight: bold;
                 text-decoration: none;
             }
             #display .right a.link:hover {
@@ -647,7 +655,7 @@
                                 line.right.parts = [];
                                 let classList = new Set();
                                 for (let part1 of detectSpecialTags(line.right.text, line.right.pos, classList)) {
-                                    if (part1.classList.includes('fmt'))
+                                    if (part1.classList.includes('fmt') || part1.classList.includes('eol-spaces'))
                                         line.right.parts.push(part1);
                                     else {
                                         for (let part2 of detectInlineFormats(part1.text, part1.pos, new Set(part1.classList))) {
@@ -897,8 +905,13 @@
                     else
                         break;
                 }
-                if (text.length)
+                if (text.length) {
                     parts.push({ text: text, pos: position, classList: [...classList.values()] });
+                    if (text.endsWith('  ')) {
+                        parts.last().text = text.slice(0, -2);
+                        parts.push({ text: '__', pos: position + text.length - 2, classList: ['eol-spaces'] });
+                    }
+                }
                 return parts;
             }
             Object.defineProperty(Array.prototype, 'last', {
