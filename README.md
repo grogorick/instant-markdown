@@ -1,7 +1,7 @@
 # Instant Markdown
 A minimal WYSIWYG-style markdown editor with **in-place editing** instead of the typical separate or side-by-side preview.
 
-Use the current version at https://steve.grogorick.de/instant-markdown  
+Use the current version at https://markdown.grogorick.de  
 Create Chrome-App via `Menu > More Tools > Create Shortcut`
 
 ## Paragraph formatting
@@ -21,7 +21,7 @@ Create Chrome-App via `Menu > More Tools > Create Shortcut`
 - *Italic* or _italic_
 - ~~Strikethrough~~
 - `Inline code`
-- [links](https://github.com/grogorick/instant-markdown)
+- [Links](https://github.com/grogorick/instant-markdown)
 - \* Escaped \**formatting \#characters
 ## Customization
 Access to pre-defined CSS variables (via *Esc* key) to readily adjust the rendering style.
