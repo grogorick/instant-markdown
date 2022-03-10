@@ -4,6 +4,8 @@
         <title>Instant Markdown</title>
         <meta name="description" content="WYSIWYG-style in-place Markdown Editor" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/png" href="favicon.png">
+        <link rel="manifest" href="pwa/manifest.json">
         <meta charset="utf-8">
         <style>
             :root {
@@ -255,6 +257,7 @@
                 width: 100%;
                 text-align: center;
                 font-style: italic;
+                cursor: text;
             }
             #start-info h1 {
                 color: #0001;
@@ -262,6 +265,17 @@
             }
             #start-info p {
                 padding: 10pt 0;
+            }
+            #start-info #pwa-install {
+                background: #057EAE;
+                border: none;
+                border-radius: 2pt;
+                padding: 15pt;
+                color: white;
+                opacity: .2;
+            }
+            #start-info #pwa-install:hover {
+                opacity: .5;
             }
 
 
@@ -330,6 +344,36 @@
             }
         </style>
         <script>
+            // If we can register a service worker, we can offer to install as PWA
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('pwa-sw.js').then(
+                        registration => console.log('ServiceWorker registration successful with scope: ', registration.scope),
+                        err => console.log('ServiceWorker registration failed: ', err)
+                    );
+
+                    let deferredPrompt = null;
+                    window.addEventListener('beforeinstallprompt', e => {
+                        e.preventDefault();
+                        deferredPrompt = e;
+                        console.log('(ready to install PWA)');
+
+                        let btn = document.querySelector('#pwa-install');
+                        btn.addEventListener('click', async () => {
+                            btn.classList.add('hidden');
+                            // Show browser prompt to install
+                            console.log('install?...');
+                            deferredPrompt.prompt();
+                            let { outcome } = await deferredPrompt.userChoice;
+                            if (outcome === 'dismissed')
+                                console.log('-> cancelled!');
+                            deferredPrompt = null;
+                        });
+                        btn.classList.remove('hidden');
+                    });
+                });
+            }
+
             let fileTypeDialogOption = { types: [{ description: 'Markdown', accept: { 'text/markdown': ['.md'] } }] };
             let scrollMargin = 50;
             let match13 = { l: 1, r: 3 };
@@ -419,10 +463,10 @@
                 ['click', 'focus', 'select', 'keydown', 'keyup'].forEach(evt => input.addEventListener(evt, updateSelection));
                 input.addEventListener('input', e => { fileChanged = !!input.value.length; updateMarkdown(); });
                 updateMarkdown();
-                display.addEventListener('click', e =>
+                [display, startInfo].forEach(el => el.addEventListener('click', e =>
                 {
                     input.focus();
-                });
+                }));
                 input.focus();
 
                 // load/save local files
@@ -952,15 +996,16 @@
         </script>
     </head>
     <body onload="init()">
+        <textarea id="input"></textarea>
+        <div id="display"></div>
         <div id="start-info" class="hidden">
             <p>Just start typing</p>
             <p>or press <b>Ctrl+O</b> or <b>drop</b> a file you want to edit</p>
             <p>use <b>Ctrl+S</b> to save your file</p>
             <p>and <b>Esc</b> for settings</p>
             <h1>Instant Markdown</h1>
+            <p><button id="pwa-install" class="hidden">Install as Web App</button></p>
         </div>
-        <textarea id="input"></textarea>
-        <div id="display"></div>
         <div id="settings" class="hidden">
             <h2>Settings</h2>
             <textarea></textarea>
