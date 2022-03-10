@@ -295,15 +295,38 @@
             }
             #controls-info p {
                 margin: 5pt 0 0;
+                display: inline-block;
+                min-width: 51%;
             }
             #controls-info p.more {
                 margin-top: 0;
             }
-            #controls-info span {
+            #controls-info span:first-child {
                 display: inline-block;
                 width: 70pt;
                 font-weight: bold;
                 vertical-align: top;
+            }
+            #controls-info span:last-child {
+                display: inline-block;
+                width: calc(100% - 70pt);
+            }
+            #settings #about {
+                float: right;
+                margin-top: 30pt;
+            }
+            @media only screen and (min-width: 768px) {
+                #settings #about {
+                    margin-top: 5pt;
+                }
+            }
+            #settings #about {
+                color: #80808066;
+            }
+            #settings #about a {
+                text-decoration: none;
+                color: #80808066;
+                font-weight: bold;
             }
         </style>
         <script>
@@ -941,11 +964,13 @@
             <h2>Settings</h2>
             <textarea></textarea>
             <div id="controls-info">
-                <p><span>Ctrl + O</span>Open a markdown file</p>
-                <p><span>Ctrl + S</span>Save a markdown file</p>
-                <p><span>Ctrl + Q</span>Start a fresh markdown file</p>
-                <p class="more"><span>Ctrl + N</span>(only avilable in app mode)</p>
-                <p><span>Escape</span>Toggle settings</p>
+                <p><span>Ctrl + O</span><span>Open a markdown file</span></p>
+                <p><span>Ctrl + S</span><span>Save a markdown file</span></p>
+                <p><span>Ctrl + Q</span><span>Start a fresh markdown file</span></p>
+                <p class="more"><span>Ctrl + N</span><span>(only avilable in app mode)</span></p>
+                <p><span>Escape</span><span>Toggle settings</span></p>
+
+                <div id="about">See on <a href="https://github.com/grogorick/instant-markdown">GitHub</a></div>
             </div>
         </div>
     </body>
