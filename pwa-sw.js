@@ -16,7 +16,7 @@ self.addEventListener('install', e => {
                 './pwa/manifest.json'
             ]);
         })
-        .then(() => console.log('-> installed!', CACHE_NAME))
+        .then(() => console.log('-> installed', CACHE_NAME))
     );
 });
 
@@ -32,24 +32,28 @@ self.addEventListener('activate', e => {
                 }
             })
         ))
-        .then(() => console.log('-> activated!', CACHE_NAME))
+        .then(() => console.log('-> activated', CACHE_NAME))
     );
 });
 
 self.addEventListener('fetch', e => {
-    console.log('fetch...', e.request.url);
+    let counter = new URL(e.request.url).pathname;
+    console.log(counter + ': fetch...');
     // try to find in cache
     e.respondWith(
-        caches.match(e.request).then(response => {
-            if (response) {
-                // cache hit - return response
-                console.log('-> match!');
-                return response;
+        caches.match(e.request).then(cacheResponse => {
+            if (cacheResponse) {
+                console.log(counter + ': -> match');
+                return cacheResponse;
             }
-            // cache miss - try to fetch online
-            return fetch(e.request)
-                .then(() => console.log('-> download!'))
-                .catch(reason => console.log('-> failed!', reason));
+            console.log(counter + ': ...not in cache');
+            return fetch(e.request).then(onlineResponse => {
+                if (onlineResponse && onlineResponse.status === 200)
+                    console.log(counter + ': -> downloaded');
+                else
+                    console.log(counter + ': -> failed');
+                return onlineResponse;
+            });
         })
     );
 });
