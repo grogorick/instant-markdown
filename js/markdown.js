@@ -421,7 +421,7 @@ function updateSelection()
     }
 
     // inline part
-    else if (selection.line.right.parts.length) {
+    else if (selection.line.right.parts?.length) {
         for (let p in selection.line.right.parts) {
             let part = selection.line.right.parts[p];
             if (part.pos > cursorPos) {
