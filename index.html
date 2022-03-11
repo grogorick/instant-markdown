@@ -880,13 +880,13 @@
                 selection.line.right.htmlTag.classList.add('current');
 
                 // format
-                if (selection.line.right.pos > cursorPos) {
+                if (selection.line.right.pos > cursorPos || (selection.line.pos == cursorPos && !selection.line.right.text.length)) {
                     selection.format = selection.line.left;
                     selection.format.htmlTag.classList.add('current');
                 }
 
                 // inline part
-                else if (selection.line.right.parts) {
+                else if (selection.line.right.parts.length) {
                     for (let p in selection.line.right.parts) {
                         let part = selection.line.right.parts[p];
                         if (part.pos > cursorPos) {
