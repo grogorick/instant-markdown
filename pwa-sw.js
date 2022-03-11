@@ -1,5 +1,5 @@
 
-let CACHE_NAME = 'instant-markdown-offline-cache-v-1';
+let CACHE_NAME = 'instant-markdown-offline-cache-v-2';
 
 self.addEventListener('install', e => {
     console.log('install...', e);
@@ -11,6 +11,16 @@ self.addEventListener('install', e => {
             cache.addAll([
                 './',
                 './favicon.png',
+
+                './css/general.css',
+
+                './js/file-handling.js',
+                './js/general.js',
+                './js/markdown.js',
+                './js/pwa.js',
+                './js/settings.js',
+                './js/utils.js',
+
                 './pwa/icon-192.png',
                 './pwa/icon-512.png',
                 './pwa/manifest.json'
