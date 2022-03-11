@@ -1,12 +1,14 @@
 # Instant Markdown
-A minimal WYSIWYG-style markdown editor with **in-place editing** instead of the typical separate or side-by-side preview.
+A minimal WYSIWYG-style markdown editor with **in-place editing** instead of the typical toggle or side-by-side preview.
 
-Use the current version at https://markdown.grogorick.de  
-Create Chrome-App via `Menu > More Tools > Create Shortcut`
+Give it a try at https://markdown.grogorick.de
 
-## Paragraph formatting
+## Features
+Aims to comply with GitHub Flavored Markdown syntax.  
+Supports to be installed as web app (PWA) to look and feel almost like a native editor app.
+### Paragraph formatting
 - Headings (6 levels)  
-`#, ##, ..., ###### title`
+`# / ## / ... / ###### title`
 - Bullet point lists  
 `- list item`
 - Quotes  
@@ -16,24 +18,28 @@ Create Chrome-App via `Menu > More Tools > Create Shortcut`
 - Horizontal rule  
 `---`
 
-## Inline formatting
+### Inline formatting
 - **Bold** or __bold__
 - *Italic* or _italic_
 - ~~Strikethrough~~
 - `Inline code`
 - [Links](https://github.com/grogorick/instant-markdown)
-- \* Escaped \**formatting \#characters
-## Customization
+- \*Escaped \**formatting \#characters
+
+### Customization
 Access to pre-defined CSS variables (via *Esc* key) to readily adjust the rendering style.
 
-## Implementation
-*Aims to comply with GitHub Flavored Markdown.*
+### File access
+- Ctrl+O or drag 'n drop to open a file
+- Ctrl+S to save the file
 
-Known missing features:
+### Known issues and missing features:
 - Click to move cursor
+- Text selection
 - Multiline inline formatting
 - Images
 - Numbered lists
 - Task lists
+- Register PWA in OS to open \*.md files
 
 *Pull requests are welcome!*
