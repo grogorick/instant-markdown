@@ -42,7 +42,7 @@
             }
 
 
-            #display, #input, #settings {
+            #input, #display, #settings, #drag-drop-indicator {
                 left: 0;
                 top: 0;
             }
@@ -50,7 +50,7 @@
                 position: absolute;
                 right: 0;
             }
-            #input, #settings {
+            #input, #settings, #drag-drop-indicator {
                 position: fixed;
                 right: 0;
                 bottom: 0;
@@ -343,6 +343,32 @@
                 color: #80808066;
                 font-weight: bold;
             }
+
+
+            #drag-drop-indicator {
+                backdrop-filter: blur(2pt);
+                background-color: #fffd;
+                padding: 10%;
+            }
+            #drag-drop-indicator > div {
+                height: 100%;
+                box-sizing: border-box;
+
+                border: 5pt dashed #80808033;
+                border-radius: 20pt;
+
+                position: relative;
+            }
+            #drag-drop-indicator div div {
+                position: absolute;
+                top: 50%;
+                width: 100%;
+                text-align: center;
+
+                font-size: 5vw;
+                font-weight: bold;
+                color: #80808066;
+            }
         </style>
         <script>
             // If we can register a service worker, we can offer to install as PWA
@@ -459,6 +485,7 @@
                 startInfo = document.querySelector('#start-info');
                 settings = document.querySelector('#settings');
                 settingsInput = settings.querySelector('textarea');
+                dragDropIndicator = document.querySelector('#drag-drop-indicator');
 
                 // editor
                 ['click', 'focus', 'select', 'keydown', 'keyup'].forEach(evt => input.addEventListener(evt, updateSelection));
@@ -472,10 +499,17 @@
 
                 // load/save local files
                 let warningMsg = 'Changes to the current document will be lost.';
-                document.addEventListener('dragover', e => e.preventDefault());
+                let hideDragDropIndicator = debounce(500, () => dragDropIndicator.classList.add('hidden'));
+                document.addEventListener('dragover', e =>
+                {
+                    e.preventDefault();
+                    dragDropIndicator.classList.remove('hidden');
+                    hideDragDropIndicator();
+                });
                 document.addEventListener('drop', async e =>
                 {
                     e.preventDefault();
+                    dragDropIndicator.classList.add('hidden');
                     if (fileChanged && !confirm(warningMsg + ' Proceed to open the dropped file?'))
                         return;
                     if (e.dataTransfer.items.length > 1) {
@@ -994,6 +1028,13 @@
                 value: function() { return this.length ? this[this.length - 1] : null; },
                 enumerable: false
             });
+            function debounce(timeout, func) {
+                let timer;
+                return (...args) => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => { func.apply(this, args); }, timeout);
+                };
+            }
         </script>
     </head>
     <body onload="init()">
@@ -1020,5 +1061,6 @@
                 <div id="about">See on <a href="https://github.com/grogorick/instant-markdown">GitHub</a></div>
             </div>
         </div>
+        <div id="drag-drop-indicator" class="hidden"><div><div>Drop file to open</div></div></div>
     </body>
 </html>
