@@ -64,7 +64,7 @@ function setupMarkdown()
     input.addEventListener('input', e => { fileChanged = !!input.value.length; updateMarkdown(); });
     updateMarkdown();
 
-    [display, startInfo].forEach(el => el.addEventListener('click', e => input.focus()));
+    startInfo.addEventListener('click', e => input.focus());
     input.focus();
 }
 
@@ -209,6 +209,7 @@ function updateMarkdown()
                         }
                         spanRight.appendChild(spanPart);
                         part.htmlTag = spanPart;
+                        setupClick(part);
                     }
                     tag.appendChild(spanRight);
                     line.right.htmlTag = spanRight;
@@ -238,6 +239,15 @@ function updateMarkdown()
         display.appendChild(section.htmlTag);
     });
     updateSelection();
+}
+
+function setupClick(el)
+{
+    el.htmlTag.addEventListener('click', e =>
+    {
+        input.focus();
+        input.selectionStart = input.selectionEnd = el.pos;
+    });
 }
 
 function getLineFormat(line, formatsToCheck = null)
