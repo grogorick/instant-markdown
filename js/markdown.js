@@ -413,7 +413,7 @@ function updateSelection()
     selection.line = selectedLine.right;
 
     // format
-    if (selectedLine.right.pos > cursorPos || (selectedLine.pos == cursorPos && !selectedLine.right.text.length)) {
+    if (selectedLine.right.pos > cursorPos || (selectedLine.right.pos == cursorPos && selectedLine.left.text.length && !selectedLine.right.text.length && !selectedLine.left.text.endsWith(' '))) {
         selection.format = selectedLine.left;
     }
 
@@ -435,9 +435,10 @@ function updateSelection()
 
     // cursor
     let cp = selection.format || selection.inlinePart || selection.line || selection.item; // cursor parent
-    cp.htmlTag.innerHTML =  cp.htmlTag.innerHTML.substr(0, cursorPos - cp.pos) +
+    let ih = decodeHtml(cp.htmlTag.innerHTML);
+    cp.htmlTag.innerHTML = ih.substr(0, cursorPos - cp.pos) +
                             '<i class="cursor"></i>' +
-                            cp.htmlTag.innerHTML.substr(cursorPos - cp.pos);
+                            ih.substr(cursorPos - cp.pos);
 
     // scroll to cursor if reqired
     let cursorBox = cp.htmlTag.getBoundingClientRect();
