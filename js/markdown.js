@@ -89,7 +89,7 @@ function updateMarkdown()
     lines.forEach(line =>
     {
         let prevSection = sections.length ? sections.last() : null;
-        let prevFormat = prevSection ? prevSection.format : null;
+        let prevFormat = prevSection?.format;
 
         let nextPosition = position + 1 + line.length;
         line = {
@@ -147,7 +147,7 @@ function updateMarkdown()
             }
             // plain text
             else {
-                if (prevFormat && prevFormat.listItem && !prevSection.blankLines.length)
+                if (prevFormat?.listItem && !prevSection.blankLines.length)
                     prevSection.content.last().push(line);
                 else if (startNewSection)
                     sections.push(newSection({ content: [[line]] }));
@@ -200,10 +200,10 @@ function updateMarkdown()
                     let spanRight = document.createElement('span');
                     spanRight.classList.add('right');
                     for (let part of line.right.parts) {
-                        let spanPart = document.createElement((part.tag && part.tag.type) ? part.tag.type : 'span');
+                        let spanPart = document.createElement(part.tag?.type ?? 'span');
                         spanPart.className = part.classList.join(' ');
                         spanPart.innerHTML = part.text;
-                        if (part.tag && part.tag.attrs) {
+                        if (part.tag?.attrs) {
                             for (let [attr, value] of Object.entries(part.tag.attrs))
                                 spanPart[attr] = value;
                         }
