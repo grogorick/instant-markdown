@@ -59,12 +59,16 @@ for (let f in formats.inline) {
 
 function setupMarkdown()
 {
-    ['click', 'focus', 'select', 'keydown', 'keyup'].forEach(evt => input.addEventListener(evt, updateSelection));
+    ['focus', 'select', 'keydown', 'keyup'].forEach(e => input.addEventListener(e, updateSelection));
 
     input.addEventListener('input', e => { fileChanged = !!input.value.length; updateMarkdown(); });
     updateMarkdown();
 
     startInfo.addEventListener('click', e => input.focus());
+    display.addEventListener('click', e => {
+        input.selectionStart = input.selectionEnd = input.value.length;
+        input.focus();
+    });
     input.focus();
 }
 
@@ -179,11 +183,15 @@ function updateMarkdown()
                 let tag = document.createElement(format.innerTag);
                 for (let l in lines) {
                     let line = lines[l];
+                    let lineDiv = document.createElement('div');
+                    lineDiv.classList.add('line');
+
                     let spanLeft = document.createElement('span');
                     spanLeft.classList.add('left');
                     spanLeft.innerHTML = line.left.text;
-                    tag.appendChild(spanLeft);
+                    lineDiv.appendChild(spanLeft);
                     line.left.htmlTag = spanLeft;
+                    setupClick(line.left);
 
                     line.right.parts = [];
                     let classList = new Set();
@@ -211,8 +219,13 @@ function updateMarkdown()
                         part.htmlTag = spanPart;
                         setupClick(part);
                     }
-                    tag.appendChild(spanRight);
+                    lineDiv.appendChild(spanRight);
                     line.right.htmlTag = spanRight;
+                    setupClick(line.right);
+
+                    tag.appendChild(lineDiv);
+                    line.htmlTag = lineDiv;
+                    setupClick(line);
                 }
                 container.appendChild(tag);
                 section.content[c] = { lines: lines, htmlTag: tag, pos: lines[0].pos };
@@ -222,18 +235,23 @@ function updateMarkdown()
             for (let c in section.blankLines) {
                 let line = section.blankLines[c];
                 let tag = document.createElement(formats.line.default.innerTag);
+                let lineDiv = document.createElement('div');
+                lineDiv.classList.add('line');
                     let spanLeft = document.createElement('span');
                     spanLeft.classList.add('left');
-                    tag.appendChild(spanLeft);
+                    lineDiv.appendChild(spanLeft);
                     line.left.htmlTag = spanLeft;
 
                     let spanRight = document.createElement('span');
                     spanRight.classList.add('right');
                     spanRight.innerHTML = line.text;
-                    tag.appendChild(spanRight);
+                    lineDiv.appendChild(spanRight);
                     line.right.htmlTag = spanRight;
+                tag.appendChild(lineDiv);
+                line.htmlTag = lineDiv;
                 section.htmlTag.appendChild(tag);
-                section.blankLines[c] = { lines: [line], htmlTag: tag, pos: line.pos };
+                section.blankLines[c] = { lines: [line], htmlTag: tag, pos: line.pos, text: line.text };
+                setupClick(section.blankLines[c]);
             }
         }
         display.appendChild(section.htmlTag);
@@ -245,8 +263,9 @@ function setupClick(el)
 {
     el.htmlTag.addEventListener('click', e =>
     {
+        e.stopPropagation();
+        input.selectionStart = input.selectionEnd = el.pos + el.text.length;
         input.focus();
-        input.selectionStart = input.selectionEnd = el.pos;
     });
 }
 
