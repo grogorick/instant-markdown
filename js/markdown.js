@@ -372,7 +372,6 @@ function updateSelection()
     }
     if (!selection.section)
         selection.section = sections.last();
-    selection.section.htmlTag.classList.add('current');
 
     // item
     if (selection.section.blankLinesPos > cursorPos) {
@@ -385,7 +384,6 @@ function updateSelection()
         }
         if (!selection.item)
             selection.item = selection.section.content.last();
-        selection.item.htmlTag.classList.add('current');
     }
 
     // blank lines
@@ -399,43 +397,44 @@ function updateSelection()
         }
         if (!selection.item)
             selection.item = selection.section.blankLines.last();
-        selection.item.htmlTag.classList.add('current');
     }
 
     // line
+    let selectedLine = null;
     for (let l in selection.item.lines) {
         let line = selection.item.lines[l];
         if (line.pos > cursorPos) {
-            selection.line = selection.item.lines[l - 1];
+            selectedLine = selection.item.lines[l - 1];
             break;
         }
     }
-    if (!selection.line)
-        selection.line = selection.item.lines.last();
-    selection.line.right.htmlTag.classList.add('current');
+    if (!selectedLine)
+        selectedLine = selection.item.lines.last();
+    selection.line = selectedLine.right;
 
     // format
-    if (selection.line.right.pos > cursorPos || (selection.line.pos == cursorPos && !selection.line.right.text.length)) {
-        selection.format = selection.line.left;
-        selection.format.htmlTag.classList.add('current');
+    if (selectedLine.right.pos > cursorPos || (selectedLine.pos == cursorPos && !selectedLine.right.text.length)) {
+        selection.format = selectedLine.left;
     }
 
     // inline part
-    else if (selection.line.right.parts?.length) {
-        for (let p in selection.line.right.parts) {
-            let part = selection.line.right.parts[p];
+    else if (selection.line.parts?.length) {
+        for (let p in selection.line.parts) {
+            let part = selection.line.parts[p];
             if (part.pos > cursorPos) {
-                selection.inlinePart = selection.line.right.parts[p - 1];
+                selection.inlinePart = selection.line.parts[p - 1];
                 break;
             }
         }
         if (!selection.inlinePart)
-            selection.inlinePart = selection.line.right.parts.last();
+            selection.inlinePart = selection.line.parts.last();
         selection.inlinePart.htmlTag.classList.add('current');
     }
 
+    Object.values(selection).forEach(el => el.htmlTag.classList.add('current'));
+
     // cursor
-    let cp = selection.format || selection.inlinePart || selection.line.right || selection.item; // cursor parent
+    let cp = selection.format || selection.inlinePart || selection.line || selection.item; // cursor parent
     cp.htmlTag.innerHTML =  cp.htmlTag.innerHTML.substr(0, cursorPos - cp.pos) +
                             '<i class="cursor"></i>' +
                             cp.htmlTag.innerHTML.substr(cursorPos - cp.pos);
