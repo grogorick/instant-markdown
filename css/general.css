@@ -175,14 +175,17 @@ textarea:focus {
     padding-bottom: 5pt;
 }
 
-#display .ul ul {
+#display .ul ul,
+#display .ol ol {
     margin-left: calc(var(--format-width) + 12pt);
 }
-#display .ul li span.left {
+#display .ul li span.left,
+#display .ol li span.left {
     position: absolute;
     left: 0;
     width: calc(var(--format-width) + 12pt);
 }
+#display .ol li span.right,
 #display .ul li span.right {
     padding-left: 5pt;
 }
