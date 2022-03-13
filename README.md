@@ -4,7 +4,7 @@ A minimal WYSIWYG-style markdown editor with **in-place editing** instead of the
 Give it a try at https://markdown.grogorick.de
 
 ## Features
-Aims to comply with GitHub Flavored Markdown syntax.  
+Aims to comply with [GitHub Flavored Markdown](https://github.github.com/gfm) syntax.  
 Supports to be installed as web app (PWA) to look and feel almost like a native editor app.
 ### Paragraph formatting
 - Headings (6 levels)  
