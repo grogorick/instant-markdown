@@ -9,7 +9,7 @@ let formats = {
         h5:     { pattern: /^(\s{0,3}#####(\s|$))(.*$)/, match: match13 },
         h6:     { pattern: /^(\s{0,3}######(\s|$))(.*$)/, match: match13 },
         quote:  { pattern: /^(\s{0,3}>)($|\s*.*$)/, multiline: true, outerTag: 'div' },
-        code:   { pattern: /^(\s{0,3}`{3,})($|\s*.*$)/, outerTag: 'code' },
+        code:   { pattern: /^(\s{0,3}(`{3,}|~{3,}))($|\s*.*$)/, match: match13, outerTag: 'code' },
         ul:     { pattern: /^((-|\+|\*)(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
         hr:     { pattern: /^(\s*((\*\s*){3,}|(-\s*){3,}|(_\s*){3,}))()$/, match: { l: 1, r: 6 }, innerTag: 'div' }
     },
@@ -90,18 +90,19 @@ function updateMarkdown(evt)
 
     // parse input text to get sections with line formats
     let startNewSection = true;
-    lines.forEach(line =>
+    lines.forEach(lineText =>
     {
         let prevSection = sections.length ? sections.last() : null;
         let prevFormat = prevSection?.format;
 
-        let nextPosition = position + 1 + line.length;
-        line = {
+        let nextPosition = position + 1 + lineText.length;
+        let prepareLine = () => ({
             pos: position,
-            text: line,
+            text: lineText,
             left: { pos: position, text: '' },
-            right: { pos: position, text: line }
-        };
+            right: { pos: position, text: lineText }
+        });
+        let line = prepareLine();
         let lineFormatMatch = getLineFormat(line.text);
         line.left.text = lineFormatMatch.match.l;
         line.right.text = lineFormatMatch.match.r;
@@ -109,7 +110,12 @@ function updateMarkdown(evt)
 
         // code section
         let prevIsCode = prevFormat && prevFormat === formats.line.code;
-        if (lineFormatMatch.format === formats.line.code && (!prevIsCode || !lineFormatMatch.match.r.trim().length)) {
+        let isMatchingCodeEnd = () =>
+        {
+            return (!lineFormatMatch.match.r.trim().length)
+                && (line.text.trim().startsWith(sections.last().content[0][0].left.text.trim()));
+        }
+        if (lineFormatMatch.format === formats.line.code && (!prevIsCode || isMatchingCodeEnd())) {
             if (!prevIsCode)
                 sections.push(newSection({ format: lineFormatMatch.format, content: [[line]], blankLinesPos: nextPosition }));
             else {
@@ -120,7 +126,7 @@ function updateMarkdown(evt)
             }
         }
         else if (prevIsCode && !prevSection.finished) {
-            prevSection.content.push([line]);
+            prevSection.content.push([prepareLine()]);
             prevSection.blankLinesPos = nextPosition;
         }
 
