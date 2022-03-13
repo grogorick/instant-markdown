@@ -60,8 +60,14 @@ for (let f in formats.inline) {
 
 function setupMarkdown()
 {
-    input.addEventListener('input', e => { fileChanged = !!input.value.length; updateMarkdown(e); });
-    updateMarkdown(null);
+    input.addEventListener('input', e =>
+    {
+        fileChanged = !!input.value.length;
+        updateMarkdown();
+        if (e.inputType.startsWith('deleteContent'))
+            updateSelection(e);
+    });
+    updateMarkdown();
 
     document.addEventListener('selectionchange', updateSelection);
 
@@ -73,7 +79,7 @@ function setupMarkdown()
     input.focus();
 }
 
-function updateMarkdown(evt)
+function updateMarkdown()
 {
     display.innerHTML = '';
 
@@ -393,8 +399,8 @@ function detectSpecialTags(text, position, classList = new Set())
 
 function updateSelection(evt)
 {
-    if (evt)
-        evt.stopPropagation();
+    console.log('seleciton', evt);
+    evt.stopPropagation();
 
     if (input !== document.activeElement)
         return;
