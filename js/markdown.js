@@ -201,14 +201,19 @@ function updateMarkdown(evt)
                     setupClick(line.left);
 
                     line.right.parts = [];
-                    let classList = new Set();
-                    for (let part1 of detectSpecialTags(line.right.text, line.right.pos, classList)) {
-                        if (part1.classList.includes('fmt') || part1.classList.includes('eol-spaces'))
-                            line.right.parts.push(part1);
-                        else {
-                            for (let part2 of detectInlineFormats(part1.text, part1.pos, new Set(part1.classList))) {
-                                part2.tag = Object.assign(part1.tag || {}, part2.tag || {});
-                                line.right.parts.push(part2);
+                    if (format == formats.line.code) {
+                        line.right.parts.push({ text: line.right.text, pos: line.right.pos, classList: [] });
+                    }
+                    else {
+                        let classList = new Set();
+                        for (let part1 of detectSpecialTags(line.right.text, line.right.pos, classList)) {
+                            if (part1.classList.includes('fmt') || part1.classList.includes('eol-spaces'))
+                                line.right.parts.push(part1);
+                            else {
+                                for (let part2 of detectInlineFormats(part1.text, part1.pos, new Set(part1.classList))) {
+                                    part2.tag = Object.assign(part1.tag || {}, part2.tag || {});
+                                    line.right.parts.push(part2);
+                                }
                             }
                         }
                     }
