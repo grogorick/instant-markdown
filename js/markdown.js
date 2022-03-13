@@ -2,16 +2,16 @@ let match13 = { l: 1, r: 3 };
 let formats = {
     line: {
         default:{ multiline: true },
-        h1:     { pattern: /^(#(\s|$))(.*$)/, match: match13 },
-        h2:     { pattern: /^(##(\s|$))(.*$)/, match: match13 },
-        h3:     { pattern: /^(###(\s|$))(.*$)/, match: match13 },
-        h4:     { pattern: /^(####(\s|$))(.*$)/, match: match13 },
-        h5:     { pattern: /^(#####(\s|$))(.*$)/, match: match13 },
-        h6:     { pattern: /^(######(\s|$))(.*$)/, match: match13 },
-        quote:  { pattern: /^(>)($|\s*.*$)/, multiline: true, outerTag: 'div' },
-        code:   { pattern: /^(```)($|\s*.*$)/, outerTag: 'code' },
-        ul:     { pattern: /^((-|\*)(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
-        hr:     { pattern: /^(---)()$/, innerTag: 'div' }
+        h1:     { pattern: /^(\s{0,3}#(\s|$))(.*$)/, match: match13 },
+        h2:     { pattern: /^(\s{0,3}##(\s|$))(.*$)/, match: match13 },
+        h3:     { pattern: /^(\s{0,3}###(\s|$))(.*$)/, match: match13 },
+        h4:     { pattern: /^(\s{0,3}####(\s|$))(.*$)/, match: match13 },
+        h5:     { pattern: /^(\s{0,3}#####(\s|$))(.*$)/, match: match13 },
+        h6:     { pattern: /^(\s{0,3}######(\s|$))(.*$)/, match: match13 },
+        quote:  { pattern: /^(\s{0,3}>)($|\s*.*$)/, multiline: true, outerTag: 'div' },
+        code:   { pattern: /^(\s{0,3}`{3,})($|\s*.*$)/, outerTag: 'code' },
+        ul:     { pattern: /^((-|\+|\*)(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
+        hr:     { pattern: /^(\s*((\*\s*){3,}|(-\s*){3,}|(_\s*){3,}))()$/, match: { l: 1, r: 6 }, innerTag: 'div' }
     },
     inline: {
         bold: [
