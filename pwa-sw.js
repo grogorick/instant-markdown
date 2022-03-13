@@ -1,5 +1,5 @@
 
-let CACHE_NAME = 'instant-markdown-offline-cache-v-2';
+let CACHE_NAME = 'instant-markdown-offline-cache-v-3';
 
 self.addEventListener('install', e => {
     console.log('install...', e);
