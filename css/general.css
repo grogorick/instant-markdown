@@ -235,6 +235,10 @@ span.eol-spaces {
     text-decoration: underline;
 }
 
+#display .right img.img {
+    max-width: 100%;
+}
+
 
 #display i.cursor {
     position: relative;

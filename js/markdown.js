@@ -34,7 +34,9 @@ let formats = {
         explicit:
             { pattern: /\[(.*)\]\((.*)\)/, match: { text: 1, url: 2 }},
         implicit:
-            { pattern: /(^|[\s\\|/([{])(https?:\/\/[^\s\\|)\]}]+)([\s\\|)\]}]|$)/, match: { before: 1, url: 2, after: 3 }}}
+            { pattern: /(^|[\s\\|/([{])(https?:\/\/[^\s\\|)\]}]+)([\s\\|)\]}]|$)/, match: { before: 1, url: 2, after: 3 }}},
+    img:
+        { pattern: /\!\[(.*)\]\((.*)\)/, match: { text: 1, url: 2 }}
 };
 
 for (let f in formats.line) {
@@ -213,7 +215,7 @@ function updateMarkdown()
                     else {
                         let classList = new Set();
                         for (let part1 of detectSpecialTags(line.right.text, line.right.pos, classList)) {
-                            if (part1.classList.includes('fmt') || part1.classList.includes('eol-spaces'))
+                            if (!part1.text || part1.classList.includes('fmt'))
                                 line.right.parts.push(part1);
                             else {
                                 for (let part2 of detectInlineFormats(part1.text, part1.pos, new Set(part1.classList))) {
@@ -228,7 +230,8 @@ function updateMarkdown()
                     for (let part of line.right.parts) {
                         let spanPart = document.createElement(part.tag?.type ?? 'span');
                         spanPart.className = part.classList.join(' ');
-                        spanPart.innerHTML = part.text;
+                        if (part.text)
+                            spanPart.innerHTML = part.text;
                         if (part.tag?.attrs) {
                             for (let [attr, value] of Object.entries(part.tag.attrs))
                                 spanPart[attr] = value;
@@ -357,11 +360,12 @@ function detectInlineFormats(text, position, classList = new Set())
 function detectSpecialTags(text, position, classList = new Set())
 {
     let parts = [];
-    let updatePos = () => position = parts.last().pos + parts.last().text.length;
+    let updatePos = () => position = parts.last().pos + (parts.last().text?.length ?? 0);
     while (true) {
         let linkExplicit = { m: text.match(formats.link.explicit.pattern), f: formats.link.explicit };
         let linkImplicit = { m: text.match(formats.link.implicit.pattern), f: formats.link.implicit };
-        let match = linkExplicit.m ? (linkImplicit.m ? (linkExplicit.m.index < linkImplicit.m.index ? linkExplicit : linkImplicit) : linkExplicit) : linkImplicit;
+        let img = { m: text.match(formats.img.pattern), f: formats.img };
+        let match = [linkExplicit, linkImplicit].reduce((a, b) => (a.m && b.m) ? ((a.m.index < b.m.index) ? a : b) : (a.m ? a : b), img);
         if (match.m) {
             let linkURL = match.m[match.f.match.url];
             if (match === linkExplicit) {
@@ -379,9 +383,15 @@ function detectSpecialTags(text, position, classList = new Set())
             }
             else if (match === linkImplicit) {
                 parts.push({ text: text.substr(0, match.m.index) + match.m[match.f.match.before], pos: position, classList: [...classList.values()] }); updatePos();
-                let tag = { type: 'a', attrs: { href: linkURL }};
-                parts.push({ text: linkURL, pos: position, classList: [...classList.values(), 'link'], tag: tag }); updatePos();
+                parts.push({ text: linkURL, pos: position, classList: [...classList.values(), 'link'], tag: { type: 'a', attrs: { href: linkURL }}}); updatePos();
                 text = text.substr(match.m.index + match.m[0].length - match.m[match.f.match.after].length);
+            }
+            else if (match === img) {
+                let linkText = match.m[match.f.match.text];
+                parts.push({ text: text.substr(0, match.m.index), pos: position, classList: [...classList.values()] }); updatePos();
+                parts.push({ single: true, pos: position, classList: ['img'], tag: { type: 'img', attrs: { src: linkURL, alt: linkText }}}); updatePos();
+                parts.push({ text: '![' + linkText + '](' + linkURL + ')', pos: position, classList: ['fmt'] }); updatePos();
+                text = text.substr(match.m.index + match.m[0].length);
             }
         }
         else
@@ -391,7 +401,7 @@ function detectSpecialTags(text, position, classList = new Set())
         parts.push({ text: text, pos: position, classList: [...classList.values()] });
         if (text.endsWith('  ')) {
             parts.last().text = text.slice(0, -2);
-            parts.push({ text: '__', pos: position + text.length - 2, classList: ['eol-spaces'] });
+            parts.push({ text: '__', pos: position + text.length - 2, classList: ['fmt', 'eol-spaces'] });
         }
     }
     return parts;
@@ -399,7 +409,6 @@ function detectSpecialTags(text, position, classList = new Set())
 
 function updateSelection(evt)
 {
-    console.log('seleciton', evt);
     evt.stopPropagation();
 
     if (input !== document.activeElement)
@@ -473,6 +482,10 @@ function updateSelection(evt)
     else if (selection.line.parts?.length) {
         for (let p in selection.line.parts) {
             let part = selection.line.parts[p];
+            if (part.pos === cursorPos) {
+                selection.inlinePart = part;
+                break;
+            }
             if (part.pos > cursorPos) {
                 selection.inlinePart = selection.line.parts[p - 1];
                 break;
@@ -487,10 +500,17 @@ function updateSelection(evt)
 
     // cursor
     let cp = selection.format || selection.inlinePart || selection.line || selection.item; // cursor parent
-    let ih = decodeHtml(cp.htmlTag.innerHTML);
-    cp.htmlTag.innerHTML = ih.substr(0, cursorPos - cp.pos) +
-                            '<i class="cursor"></i>' +
-                            ih.substr(cursorPos - cp.pos);
+    if (cp.single) {
+        let i = document.createElement('i');
+        i.classList.add('cursor');
+        cp.htmlTag.parentNode.insertBefore(i, cp.htmlTag);
+    }
+    else {
+        let ih = decodeHtml(cp.htmlTag.innerHTML);
+        cp.htmlTag.innerHTML = ih.substr(0, cursorPos - cp.pos) +
+                                '<i class="cursor"></i>' +
+                                ih.substr(cursorPos - cp.pos);
+    }
 
     // scroll to cursor if reqired
     let displayBox = display.getBoundingClientRect();
