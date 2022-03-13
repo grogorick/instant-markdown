@@ -117,12 +117,14 @@ textarea:focus {
     font-size: 200%;
     padding-top: 20pt;
     padding-bottom: 10pt;
-    border-bottom: 1px solid var(--heading-border-color);
 }
 #display .h2 p:first-child .line {
     font-size: 160%;
     padding-top: 15pt;
     padding-top: 10pt;
+}
+#display .h1 > p:first-child .left, #display .h1 > p:first-child .right,
+#display .h2 > p:first-child .left, #display .h2 > p:first-child .right {
     border-bottom: 1px solid var(--heading-border-color);
 }
 #display .h3 p:first-child .line,
@@ -144,7 +146,7 @@ textarea:focus {
     font-size: 110%;
 }
 
-#display .quote div span.right {
+#display .quote div p span.right {
     border-left: 1px solid var(--quote-border-color);
     padding-left: 15pt;
 }
