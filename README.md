@@ -9,7 +9,7 @@ Supports to be installed as web app (PWA) to look and feel almost like a native 
 ### Paragraph formatting
 - Headings (6 levels)  
 `# / ## / ... / ###### title`
-- Bullet point lists  
+- Bullet point and numbered lists  
 `- list item`
 - Quotes  
 `> quoted text`
@@ -24,6 +24,7 @@ Supports to be installed as web app (PWA) to look and feel almost like a native 
 - ~~Strikethrough~~
 - `Inline code`
 - [Links](https://github.com/grogorick/instant-markdown)
+- ![Images](https://raw.githubusercontent.com/grogorick/instant-markdown/master/favicon.png)
 - \*Escaped \**formatting \#characters
 
 ### Customization
@@ -37,8 +38,6 @@ Access to pre-defined CSS variables (via *Esc* key) to readily adjust the render
 - Click to move cursor
 - Text selection
 - Multiline inline formatting
-- Images
-- Numbered lists
 - Task lists
 - Register PWA in OS to open \*.md files
 
