@@ -475,13 +475,10 @@ function updateSelection(evt)
                             ih.substr(cursorPos - cp.pos);
 
     // scroll to cursor if reqired
+    let displayBox = display.getBoundingClientRect();
     let cursorBox = cp.htmlTag.getBoundingClientRect();
-    if (cursorBox.top < scrollMargin) {
-        cp.htmlTag.scrollIntoView(true);
-        window.scrollBy(0, -scrollMargin);
-    }
-    else if (cursorBox.bottom > document.body.clientHeight - scrollMargin) {
-        cp.htmlTag.scrollIntoView(false);
-        window.scrollBy(0, scrollMargin);
-    }
+    if (cursorBox.top < scrollMargin)
+        window.scrollTo(0, cursorBox.top - displayBox.top - scrollMargin);
+    else if (cursorBox.bottom > window.innerHeight - scrollMargin)
+        window.scrollTo(0, cursorBox.bottom - window.innerHeight - displayBox.top + scrollMargin, true);
 }
