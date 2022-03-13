@@ -59,10 +59,10 @@ for (let f in formats.inline) {
 
 function setupMarkdown()
 {
-    ['focus', 'select', 'keydown', 'keyup'].forEach(e => input.addEventListener(e, updateSelection));
+    input.addEventListener('input', e => { fileChanged = !!input.value.length; updateMarkdown(e); });
+    updateMarkdown(null);
 
-    input.addEventListener('input', e => { fileChanged = !!input.value.length; updateMarkdown(); });
-    updateMarkdown();
+    document.addEventListener('selectionchange', updateSelection);
 
     startInfo.addEventListener('click', e => input.focus());
     display.addEventListener('click', e => {
@@ -72,7 +72,7 @@ function setupMarkdown()
     input.focus();
 }
 
-function updateMarkdown()
+function updateMarkdown(evt)
 {
     display.innerHTML = '';
 
@@ -256,7 +256,6 @@ function updateMarkdown()
         }
         display.appendChild(section.htmlTag);
     });
-    updateSelection();
 }
 
 function setupClick(el)
@@ -380,8 +379,14 @@ function detectSpecialTags(text, position, classList = new Set())
     return parts;
 }
 
-function updateSelection()
+function updateSelection(evt)
 {
+    if (evt)
+        evt.stopPropagation();
+
+    if (input !== document.activeElement)
+        return;
+
     if (!input.value.length)
         return;
 

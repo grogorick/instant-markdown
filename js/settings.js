@@ -1,9 +1,9 @@
 function setupSettings()
 {
-    document.addEventListener('keydown', async e =>
+    document.addEventListener('keydown', e =>
     {
         if (e.key.toLowerCase() === 'escape') {
-            e.preventDefault();
+            stopEvent(e);
             toggleSettings();
         }
     });

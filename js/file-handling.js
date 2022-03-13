@@ -26,35 +26,35 @@ function setupFileHandling()
             loadFile();
         }
     });
-    document.addEventListener('keydown', async e =>
+    document.addEventListener('keydown', e =>
     {
         if (e.ctrlKey) {
             switch (e.key.toLowerCase()) {
                 case 'o':
-                    e.preventDefault();
+                    stopEvent(e);
                     if (fileChanged && !confirm(warningMsg + ' Proceed to open another file?'))
                         return;
-                    [currentFileHandle] = await window.showOpenFilePicker(fileTypeDialogOption);
-                    loadFile();
+                    (async () => {
+                        [currentFileHandle] = await window.showOpenFilePicker(fileTypeDialogOption);
+                        loadFile();
+                    })();
                 break;
                 case 's':
-                    e.preventDefault();
-                    saveFile();
+                    stopEvent(e);
+                    (async () => {
+                        saveFile();
+                    })();
                 break;
                 case 'n':
                 case 'q':
-                    e.preventDefault();
+                    stopEvent(e);
                     if (fileChanged && !confirm(warningMsg + ' Proceed to start a new file?'))
                         return;
-                    reset();
+                    reset(true);
                     updateMarkdown();
                 break;
                 default:
             }
-        }
-        if (e.key.toLowerCase() === 'escape') {
-            e.preventDefault();
-            toggleSettings();
         }
     });
     window.addEventListener('beforeunload', e => {

@@ -28,17 +28,17 @@ function init()
     settingsInput = settings.querySelector('textarea');
     dragDropIndicator = document.querySelector('#drag-drop-indicator');
 
-    // editor
-    setupMarkdown();
+    // settings
+    setupSettings();
 
     // load/save local files
     setupFileHandling();
 
-    // settings
-    setupSettings();
+    // editor
+    setupMarkdown();
 }
 
-function reset(clearFileHandle = true)
+function reset(clearFileHandle)
 {
     input.value = '';
     display.innerHTML = '';

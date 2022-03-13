@@ -16,3 +16,9 @@ function decodeHtml(html) {
     txt.innerHTML = html;
     return txt.value;
 }
+
+function stopEvent(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+}
