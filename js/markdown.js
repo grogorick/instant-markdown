@@ -15,6 +15,8 @@ let formats = {
         hr:     { pattern: /^(\s*((\*\s*){3,}|(-\s*){3,}|(_\s*){3,}))()$/, match: { l: 1, r: 6 }, innerTag: 'div' }
     },
     inline: {
+        code: [
+            { pattern: /((^|[^`\\])`)([^`]|$)/, toggle: true }],
         bold: [
             { pattern: /((^|\s)(\*\*|__))\S/, start: true, count: 2 },
             { pattern: /(\S(\*\*|__))\S/, toggle: true, count: 2 },
@@ -26,9 +28,7 @@ let formats = {
         strike: [
             { pattern: /((^|\s)~~)\S/, start: true, count: 2 },
             { pattern: /(\S~~)\S/, toggle: true, count: 2 },
-            { pattern: /(\S~~)(\s|$)/, end: true, count: 2 }],
-        code: [
-            { pattern: /((^|[^`\\])`)([^`]|$)/, toggle: true }]
+            { pattern: /(\S~~)(\s|$)/, end: true, count: 2 }]
         },
     link: {
         explicit:
