@@ -4,19 +4,25 @@ A minimal WYSIWYG-style markdown editor with **in-place editing** instead of the
 Give it a try at https://markdown.grogorick.de
 
 ## Features
-Aims to comply with [GitHub Flavored Markdown](https://github.github.com/gfm) syntax.  
+Aims to comply with [GitHub Flavored Markdown](https://github.github.com/gfm).  
 Supports to be installed as web app (PWA) to look and feel almost like a native editor app.
+
 ### Paragraph formatting
 - Headings (6 levels)  
-`# / ## / ... / ###### title`
-- Bullet point and numbered lists  
-`- list item`
+`# title`  
+`## title`  
+...
+`###### title`
+- Bullet point lists  
+`* list item`  
+`- list item`  
+`+ list item`
 - Quotes  
 `> quoted text`
-- Code  
-` ```code`
+- Code sections  
+` ``` code ``` ` or `~~~ code ~~~`
 - Horizontal rule  
-`---`
+`***` or `---` or `___`
 
 ### Inline formatting
 - **Bold** or __bold__
@@ -25,7 +31,7 @@ Supports to be installed as web app (PWA) to look and feel almost like a native 
 - `Inline code`
 - [Links](https://github.com/grogorick/instant-markdown)
 - ![Images](https://raw.githubusercontent.com/grogorick/instant-markdown/master/favicon.png)
-- \*Escaped \**formatting \#characters
+- \`Escaped \*formatting \#characters
 
 ### Customization
 Access to pre-defined CSS variables (via *Esc* key) to readily adjust the rendering style.
@@ -35,10 +41,11 @@ Access to pre-defined CSS variables (via *Esc* key) to readily adjust the render
 - Ctrl+S to save the file
 
 ### Known issues and missing features:
-- Click to move cursor
+- Click to move cursor to that exact position
 - Text selection
 - Multiline inline formatting
 - Task lists
+- Collapse sections
 - Register PWA in OS to open \*.md files
 
 *Pull requests are welcome!*
