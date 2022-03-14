@@ -13,7 +13,7 @@ let currentFileHandle = null;
 let fileChanged = false;
 
 let sections = [];
-let selection = {};
+let selectionStart = {};
 
 let cookies = Object.assign({}, ...document.cookie.split(';').map(c => { c = c.split('='); return { [c[0].trim()]: decodeURIComponent(c[1]) }; }));
 

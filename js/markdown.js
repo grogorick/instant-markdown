@@ -421,7 +421,37 @@ function updateSelection(evt)
     display.querySelectorAll('.cursor').forEach(el => el.remove());
 
     let cursorPos = input.selectionStart;
-    selection = {};
+    selectionStart = trackSelection(input.selectionStart);
+
+    Object.values(selectionStart).forEach(el => el.htmlTag.classList.add('current'));
+
+    // cursor
+    let cursorParent = selectionStart.format || selectionStart.inlinePart || selectionStart.line || selectionStart.item;
+    if (cursorParent.single) {
+        let i = document.createElement('i');
+        i.classList.add('cursor');
+        cursorParent.htmlTag.parentNode.insertBefore(i, cursorParent.htmlTag);
+    }
+    else {
+        let ih = decodeHtml(cursorParent.htmlTag.innerHTML);
+        cursorParent.htmlTag.innerHTML =
+            ih.substr(0, cursorPos - cursorParent.pos) +
+            '<i class="cursor"></i>' +
+            ih.substr(cursorPos - cursorParent.pos);
+    }
+
+    // scroll to cursor if reqired
+    let displayBox = display.getBoundingClientRect();
+    let cursorBox = cursorParent.htmlTag.getBoundingClientRect();
+    if (cursorBox.top < scrollMargin)
+        window.scrollTo(0, cursorBox.top - displayBox.top - scrollMargin);
+    else if (cursorBox.bottom > window.innerHeight - scrollMargin)
+        window.scrollTo(0, cursorBox.bottom - window.innerHeight - displayBox.top + scrollMargin, true);
+}
+
+function trackSelection(cursorPos)
+{
+    let selection = {};
 
     // section
     for (let s in sections) {
@@ -493,30 +523,7 @@ function updateSelection(evt)
         }
         if (!selection.inlinePart)
             selection.inlinePart = selection.line.parts.last();
-        selection.inlinePart.htmlTag.classList.add('current');
     }
 
-    Object.values(selection).forEach(el => el.htmlTag.classList.add('current'));
-
-    // cursor
-    let cp = selection.format || selection.inlinePart || selection.line || selection.item; // cursor parent
-    if (cp.single) {
-        let i = document.createElement('i');
-        i.classList.add('cursor');
-        cp.htmlTag.parentNode.insertBefore(i, cp.htmlTag);
-    }
-    else {
-        let ih = decodeHtml(cp.htmlTag.innerHTML);
-        cp.htmlTag.innerHTML = ih.substr(0, cursorPos - cp.pos) +
-                                '<i class="cursor"></i>' +
-                                ih.substr(cursorPos - cp.pos);
-    }
-
-    // scroll to cursor if reqired
-    let displayBox = display.getBoundingClientRect();
-    let cursorBox = cp.htmlTag.getBoundingClientRect();
-    if (cursorBox.top < scrollMargin)
-        window.scrollTo(0, cursorBox.top - displayBox.top - scrollMargin);
-    else if (cursorBox.bottom > window.innerHeight - scrollMargin)
-        window.scrollTo(0, cursorBox.bottom - window.innerHeight - displayBox.top + scrollMargin, true);
+    return selection;
 }
