@@ -87,6 +87,7 @@ async function loadFile()
         document.title = currentFileHandle.name + (!inAppMode ? ' - ' + docTitle : '');
         input.value = reader.result;
         updateMarkdown();
+        setSelection(0);
         console.log('file loaded: ' + currentFileHandle.name);
     }, false);
     reader.readAsText(file);

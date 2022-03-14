@@ -409,24 +409,30 @@ function detectSpecialTags(text, position, classList = new Set())
 
 function updateSelection(evt)
 {
-    evt.stopPropagation();
+    if (evt)
+        evt.stopPropagation();
 
-    if (input !== document.activeElement)
+    if (input !== document.activeElement || !input.value.length)
         return;
 
-    if (!input.value.length)
+    let selectionStartChanged = input.selectionStart !== (selectionStart.pos ?? -1);
+    let selectionEndChanged = input.selectionEnd !== (selectionEnd.pos ?? -1);
+    if (!(selectionStartChanged || selectionEndChanged))
         return;
 
     document.querySelectorAll('#display .current').forEach(el => el.classList.remove('current'));
     display.querySelectorAll('.cursor').forEach(el => el.remove());
 
-    let cursorPos = input.selectionStart;
     selectionStart = trackSelection(input.selectionStart);
+    selectionEnd = trackSelection(input.selectionEnd);
 
-    Object.values(selectionStart).forEach(el => el.htmlTag.classList.add('current'));
+    Object.values(selectionStart.el).forEach(el => el.htmlTag.classList.add('current'));
+    Object.values(selectionEnd.el).forEach(el => el.htmlTag.classList.add('current'));
+
 
     // cursor
-    let cursorParent = selectionStart.format || selectionStart.inlinePart || selectionStart.line || selectionStart.item;
+    let selection = (selectionStart.pos === selectionEnd.pos || selectionEndChanged) ? selectionEnd : selectionStart;
+    let cursorParent = selection.el.format || selection.el.inlinePart || selection.el.line || selection.el.item;
     if (cursorParent.single) {
         let i = document.createElement('i');
         i.classList.add('cursor');
@@ -435,9 +441,9 @@ function updateSelection(evt)
     else {
         let ih = decodeHtml(cursorParent.htmlTag.innerHTML);
         cursorParent.htmlTag.innerHTML =
-            ih.substr(0, cursorPos - cursorParent.pos) +
+            ih.substr(0, selection.pos - cursorParent.pos) +
             '<i class="cursor"></i>' +
-            ih.substr(cursorPos - cursorParent.pos);
+            ih.substr(selection.pos - cursorParent.pos);
     }
 
     // scroll to cursor if reqired
@@ -531,5 +537,5 @@ function trackSelection(cursorPos)
             selection.inlinePart = selection.line.parts.last();
     }
 
-    return selection;
+    return { pos: cursorPos, el: selection };
 }

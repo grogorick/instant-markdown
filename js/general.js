@@ -14,6 +14,7 @@ let fileChanged = false;
 
 let sections = [];
 let selectionStart = {};
+let selectionEnd = {};
 
 let cookies = Object.assign({}, ...document.cookie.split(';').map(c => { c = c.split('='); return { [c[0].trim()]: decodeURIComponent(c[1]) }; }));
 
@@ -48,4 +49,6 @@ function reset(clearFileHandle)
         document.title = docTitle;
     }
     fileChanged = false;
+    selectionStart = {};
+    selectionEnd = {};
 }
