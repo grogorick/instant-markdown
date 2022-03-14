@@ -75,7 +75,7 @@ function setupMarkdown()
 
     startInfo.addEventListener('click', e => input.focus());
     display.addEventListener('click', e => {
-        input.selectionStart = input.selectionEnd = input.value.length;
+        setSelection(input.value.length);
         input.focus();
     });
     input.focus();
@@ -284,7 +284,7 @@ function setupClick(el)
     el.htmlTag.addEventListener('click', e =>
     {
         e.stopPropagation();
-        input.selectionStart = input.selectionEnd = el.pos + el.text.length;
+        setSelection(el.pos + el.text.length);
         input.focus();
     });
 }
@@ -447,6 +447,12 @@ function updateSelection(evt)
         window.scrollTo(0, cursorBox.top - displayBox.top - scrollMargin);
     else if (cursorBox.bottom > window.innerHeight - scrollMargin)
         window.scrollTo(0, cursorBox.bottom - window.innerHeight - displayBox.top + scrollMargin, true);
+}
+
+function setSelection(cursorStartPos, cursorEndPos = null)
+{
+    input.selectionStart = cursorStartPos;
+    input.selectionEnd = cursorEndPos ?? cursorStartPos;
 }
 
 function trackSelection(cursorPos)
