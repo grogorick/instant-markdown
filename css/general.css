@@ -197,7 +197,7 @@ textarea:focus {
     padding-left: 5pt;
 }
 
-#display .hr div span.right::after {
+#display .hr div .line span.right::after {
     content: ' ';
     width: 100%;
     height: 0;
