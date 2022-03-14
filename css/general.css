@@ -72,6 +72,10 @@ textarea:focus {
     width: var(--format-width);
     color: var(--line-format-color);
     background: var(--line-format-background);
+    visibility: hidden;
+}
+#display .current span.left {
+    visibility: visible;
 }
 #display span.left:before {
     content: '';
@@ -204,6 +208,10 @@ textarea:focus {
 
 #display span.fmt {
     color: var(--inline-format-color);
+    display: none;
+}
+#display .current span.fmt {
+    display: inline;
 }
 #display span.bold {
     font-weight: bold;
