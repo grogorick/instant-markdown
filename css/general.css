@@ -9,6 +9,7 @@
     --highlight-line-color: #057EAE22;
     --highlight-inline-part-color: transparent;
 
+    --text-font: 'Sans';
     --text-color: black;
     --link-color: #057EAE;
     --background: white;
@@ -25,6 +26,7 @@
 
 body {
     background: var(--background);
+    font-family: var(--text-font);
 }
 textarea:focus {
     outline: none;
@@ -178,6 +180,7 @@ textarea:focus {
     background: var(--code-background-color);
 }
 #display .code code p:first-child span.right {
+    font-family: var(--code-font);
     color: var(--inline-format-color);
 }
 #display .code code p:first-child span.right,
