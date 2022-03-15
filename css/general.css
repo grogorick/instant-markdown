@@ -191,10 +191,13 @@ textarea:focus {
     position: absolute;
     left: 0;
     width: calc(var(--format-width) + 12pt);
+    padding-right: calc(5pt + 12pt);
 }
 #display .ol li span.right,
 #display .ul li span.right {
+    width: 100%;
     padding-left: 5pt;
+    vertical-align: top;
 }
 
 #display .hr div .line span.right::after {
