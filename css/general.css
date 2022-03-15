@@ -70,8 +70,11 @@ textarea:focus {
 #display span.left {
     display: inline-block;
     width: var(--format-width);
+    padding-right: 5pt;
+    box-sizing: border-box;
     color: var(--line-format-color);
     background: var(--line-format-background);
+    text-align: right;
     visibility: hidden;
 }
 #display .current span.left {
@@ -85,7 +88,7 @@ textarea:focus {
     display: inline-block;
     box-sizing: border-box;
 }
-#display :not(li) > span.right {
+#display span.right {
     width: calc(100% - var(--format-width));
 }
 #display li > span.right {
