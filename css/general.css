@@ -1,8 +1,8 @@
 :root {
     --format-width: 50pt;
-    --line-format-color: #80808033;
+    --line-format-color: #80808066;
     --line-format-background: transparent;
-    --inline-format-color: #80808033;
+    --inline-format-color: #80808066;
 
     --highlight-section-color: transparent;
     --highlight-item-color: transparent;
@@ -15,6 +15,8 @@
 
     --heading-border-color: #80808033;
     --quote-border-color: #80808099;
+    --code-font: 'Courier New', Courier, monospace;
+    --code-color: black;
     --code-border-color: #80808022;
     --code-background-color: #80808011;
     --hr-color: #80808033;
@@ -165,6 +167,7 @@ textarea:focus {
     border-left: 1px solid var(--code-border-color);
     border-right: 1px solid var(--code-border-color);
     padding: 0 5pt;
+    color: var(--code-color);
     background: var(--code-background-color);
 }
 #display .code code p:first-child span.right {
@@ -232,6 +235,7 @@ textarea:focus {
     font-family: monospace;
     border: 1px solid var(--code-border-color);
     padding: 2pt 5pt;
+    color: var(--code-color);
     background: var(--code-background-color);
 }
 
