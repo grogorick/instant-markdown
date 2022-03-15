@@ -2,8 +2,8 @@
 <html lang="en" xml:lang="en">
     <head>
         <title>Instant Markdown</title>
-        <meta name="description" content="WYSIWYG-style in-place Markdown Editor" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content="WYSIWYG-style in-place Markdown Editor">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta charset="utf-8">
         <link rel="manifest" href="pwa/manifest.json">
         <link rel="icon" type="image/png" href="favicon.png">
@@ -28,7 +28,13 @@
         </div>
         <div id="settings" class="hidden">
             <h2>Settings</h2>
-            <textarea></textarea>
+            <div id="list">
+                <div id="item-template" class="row hidden">
+                    <div class="label"></div>
+                    <div class="preview"></div>
+                    <input class="value" type="text">
+                </div>
+            </div>
             <div id="controls-info">
                 <p><span>Ctrl + O</span><span>Open a markdown file</span></p>
                 <p><span>Ctrl + S</span><span>Save a markdown file</span></p>

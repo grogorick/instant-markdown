@@ -5,10 +5,9 @@ let input = null;
 let display = null;
 let startInfo = null;
 let settings = null;
-let settingsInput = null;
 
 let docTitle = document.title;
-let customStyle = null;
+let customStyle = {};
 let currentFileHandle = null;
 let fileChanged = false;
 
@@ -26,7 +25,6 @@ function init()
     display = document.querySelector('#display');
     startInfo = document.querySelector('#start-info');
     settings = document.querySelector('#settings');
-    settingsInput = settings.querySelector('textarea');
     dragDropIndicator = document.querySelector('#drag-drop-indicator');
 
     // settings

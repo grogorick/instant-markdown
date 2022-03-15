@@ -331,13 +331,35 @@ span.eol-spaces {
     font-size: 200%;
     color: gray;
 }
-#settings textarea {
+#settings #list {
     flex-grow: 1;
 
     padding: 20pt;
     border: 1px solid #80808033;
     box-shadow: 3pt 3pt 10pt #80808066;
 }
+#settings #list .row {
+    margin: 5pt 0;
+    text-align: center;
+}
+#settings #list .label {
+    text-align: left;
+}
+#settings #list .label,
+#settings #list .preview {
+    display: inline-block;
+}
+#settings #list .label,
+#settings #list .value {
+    min-width: 200pt;
+    width: 40%;
+    max-width: 400pt;
+}
+#settings #list .preview {
+    width: 10pt;
+    height: 10pt;
+}
+
 #controls-info {
     margin-top: 20pt;
 }
@@ -359,6 +381,7 @@ span.eol-spaces {
     display: inline-block;
     width: calc(100% - 70pt);
 }
+
 #settings #about {
     float: right;
     margin-top: 30pt;
