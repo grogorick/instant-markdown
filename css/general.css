@@ -9,7 +9,7 @@
     --highlight-line-color: #057EAE22;
     --highlight-inline-part-color: transparent;
 
-    --text-font: 'Sans';
+    --text-font: 'OpenSans';
     --text-color: black;
     --link-color: #057EAE;
     --background: white;
@@ -21,6 +21,17 @@
     --code-border-color: #80808022;
     --code-background-color: #80808011;
     --hr-color: #80808033;
+}
+
+
+@font-face {
+    font-family: 'OpenSans';
+    src: url('../font/OpenSans-Light.woff') format('woff'), url('../font/OpenSans-Light.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'OpenSans';
+    src: url('../font/OpenSans-Bold.woff') format('woff'), url('../font/OpenSans-Bold.ttf') format('truetype');
+    font-weight: bold;
 }
 
 
