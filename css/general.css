@@ -1,5 +1,5 @@
 :root {
-    --format-width: 50pt;
+    --format-width: 60pt;
     --line-format-color: #80808066;
     --line-format-background: transparent;
     --inline-format-color: #80808066;
@@ -121,9 +121,16 @@ textarea:focus {
 #display .h4 p:first-child .line,
 #display .h5 p:first-child .line,
 #display .h6 p:first-child .line {
-    font-weight: bold;
     margin: 0;
     padding-bottom: 5pt;
+}
+#display .h1 p:first-child .right,
+#display .h2 p:first-child .right,
+#display .h3 p:first-child .right,
+#display .h4 p:first-child .right,
+#display .h5 p:first-child .right,
+#display .h6 p:first-child .right {
+    font-weight: bold;
 }
 #display .h1 p:first-child .line {
     font-size: 200%;
