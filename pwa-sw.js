@@ -1,18 +1,28 @@
+let CACHE_VERSION = '5';
+let CACHE_NAME = 'instant-markdown-offline-cache-v' + CACHE_VERSION;
 
-let CACHE_NAME = 'instant-markdown-offline-cache-v-4';
+self.addEventListener('message', async e => {
+    if (e.data && e.data.type === 'GET_VERSION')
+        console.log('service worker cache version: ', CACHE_VERSION);
+});
 
 self.addEventListener('install', e => {
-    console.log('install...', e);
+    console.log('install...');
     // cache files
     e.waitUntil(
         caches.open(CACHE_NAME)
         .then(cache => {
             console.log('...cache open');
-            cache.addAll([
+            let cacheURLs = [
                 './',
                 './favicon.png',
 
                 './css/general.css',
+
+                './font/OpenSans-Bold.ttf',
+                './font/OpenSans-Bold.woff',
+                './font/OpenSans-Light.ttf',
+                './font/OpenSans-Light.woff',
 
                 './js/file-handling.js',
                 './js/general.js',
@@ -24,7 +34,9 @@ self.addEventListener('install', e => {
                 './pwa/icon-192.png',
                 './pwa/icon-512.png',
                 './pwa/manifest.json'
-            ]);
+            ].map(url => url + '?v' + CACHE_VERSION);
+            console.log('cache:', cacheURLs);
+            cache.addAll(cacheURLs);
         })
         .then(() => console.log('-> installed', CACHE_NAME))
     );
@@ -47,21 +59,21 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-    let counter = new URL(e.request.url).pathname;
-    console.log(counter + ': fetch...');
-    // try to find in cache
+    let query = new URL(e.request.url).pathname;
+    // console.log(query + ': fetch...');
+    let request = e.request.url + '?v' + CACHE_VERSION;
     e.respondWith(
-        caches.match(e.request).then(cacheResponse => {
+        caches.match(request).then(cacheResponse => {
             if (cacheResponse) {
-                console.log(counter + ': -> match');
+                console.log(query + ' -> match');
                 return cacheResponse;
             }
-            console.log(counter + ': ...not in cache');
-            return fetch(e.request).then(onlineResponse => {
+            // console.log(query + ': ...not in cache');
+            return fetch(request).then(onlineResponse => {
                 if (onlineResponse && onlineResponse.status === 200)
-                    console.log(counter + ': -> downloaded');
+                    console.log(query + ' -> downloaded');
                 else
-                    console.log(counter + ': -> failed');
+                    console.log(query + ' -> failed');
                 return onlineResponse;
             });
         })

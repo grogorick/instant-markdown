@@ -1,10 +1,36 @@
 // If we can register a service worker, we can offer to install as PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('pwa-sw.js').then(
-            registration => console.log('ServiceWorker registered for: ', registration.scope),
-            err => console.log('ServiceWorker registration failed: ', err)
-        );
+        navigator.serviceWorker.register('pwa-sw.js')
+            .then(registration =>
+            {
+                console.log('(new) service worker registered for: ', registration.scope);
+
+                if (!navigator.serviceWorker.controller) {
+                    // first visit - no previous worker to update
+                    console.log('no previous service worker');
+                    return;
+                }
+                console.log('previous service worker running');
+                navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
+
+                // handle updates
+                let showUpdateMessage = () => document.querySelector('#update-notification').classList.remove('hidden');
+                let waitForInstallToComplete = newWorker =>
+                {
+                    newWorker.addEventListener('statechange', () =>
+                    {
+                        if (newWorker.state === 'installed') // `registration.waiting`
+                            showUpdateMessage();
+                    });
+                };
+                registration.addEventListener('updatefound', () => waitForInstallToComplete(registration.installing));
+                if (registration.installing) // in case the installation already started (missed the `updatefound` event)
+                    waitForInstallToComplete(registration.installing);
+                else if (registration.waiting)// in case the whole installation is already finished
+                    showUpdateMessage();
+            })
+            .catch(err => console.log('service worker registration failed: ', err));
 
         let deferredPrompt = null;
         window.addEventListener('beforeinstallprompt', e => {
