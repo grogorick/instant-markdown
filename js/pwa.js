@@ -14,6 +14,12 @@ if ('serviceWorker' in navigator) {
                 console.log('previous service worker running');
                 navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
 
+                // check for updates
+                setInterval(() => {
+                    console.log('update?');
+                    registration.update();
+                }, 24 * 60 * 60 * 1000);
+
                 // handle updates
                 let showUpdateMessage = () => document.querySelector('#update-notification').classList.remove('hidden');
                 let waitForInstallToComplete = newWorker =>
