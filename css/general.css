@@ -344,16 +344,22 @@ span.eol-spaces {
 }
 
 
-#settings {
-    padding: 5vh 10%;
-    backdrop-filter: blur(2pt);
+body.settings-visible {
+    overflow-y: hidden;
+}
+#settings > div {
+    max-height: 100%;
+    box-sizing: border-box;
     overflow-y: auto;
+    backdrop-filter: blur(4pt);
+    padding: 5vh 10%;
 }
 @media only screen and (min-width: 768px) {
-    #settings {
+    #settings > div {
         padding: 10vh 10%;
     }
 }
+
 #settings::before {
     content: '';
     background-color: var(--background);
@@ -362,7 +368,7 @@ span.eol-spaces {
     top: 0;
     right: 0;
     bottom: 0;
-    opacity: .8;
+    opacity: .85;
     z-index: -1;
 }
 #settings h2 {

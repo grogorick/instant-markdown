@@ -109,11 +109,13 @@ function toggleSettings()
 {
     settings.classList.toggle('hidden');
     if (!settings.classList.contains('hidden')) {
+        document.body.classList.add('settings-visible');
         settings.querySelector('.' + currentStyle).click();
         updateCustomStyles('disable');
         (lastFocusedCssInput ?? Object.values(cssInputs)[0].IM_value).focus();
     }
     else {
+        document.body.classList.remove('settings-visible');
         updateCustomStyles();
         updatePreviewStyle('disable');
         document.cookie = 'customStyle=' + encodeURIComponent(JSON.stringify(customStyleValues));
