@@ -1,9 +1,9 @@
-let CACHE_VERSION = '5';
+let CACHE_VERSION = '6';
 let CACHE_NAME = 'instant-markdown-offline-cache-v' + CACHE_VERSION;
 
 self.addEventListener('message', async e => {
     if (e.data && e.data.type === 'GET_VERSION')
-        console.log('service worker cache version: ', CACHE_VERSION);
+        console.log('-> cache version: ', CACHE_VERSION);
 });
 
 self.addEventListener('install', e => {
@@ -35,7 +35,7 @@ self.addEventListener('install', e => {
                 './pwa/icon-512.png',
                 './pwa/manifest.json'
             ].map(url => url + '?v' + CACHE_VERSION);
-            console.log('cache:', cacheURLs);
+            console.log('...cache:', cacheURLs);
             cache.addAll(cacheURLs);
         })
         .then(() => console.log('-> installed', CACHE_NAME))
@@ -59,13 +59,13 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-    let query = new URL(e.request.url).pathname;
+    let query = 'get: ' + new URL(e.request.url).pathname;
     // console.log(query + ': fetch...');
     let request = e.request.url + '?v' + CACHE_VERSION;
     e.respondWith(
         caches.match(request).then(cacheResponse => {
             if (cacheResponse) {
-                console.log(query + ' -> match');
+                console.log(query + ' -> in cache');
                 return cacheResponse;
             }
             // console.log(query + ': ...not in cache');

@@ -1,3 +1,10 @@
+let currentStyle = 'general';
+let customCSS = null;
+let customStyleValues = null;
+let cssInputs = {};
+let lastFocusedCssInput = null;
+
+
 function setupSettings()
 {
     document.addEventListener('keydown', e =>
@@ -7,59 +14,125 @@ function setupSettings()
             toggleSettings();
         }
     });
-    customCSS = new CSSStyleSheet();
-    document.adoptedStyleSheets = [customCSS];
+    customCSS = {
+        general: new CSSStyleSheet(),
+        light: new CSSStyleSheet(),
+        dark: new CSSStyleSheet(),
+        preview: new CSSStyleSheet()
+    };
+    document.adoptedStyleSheets = Object.values(customCSS);
 
+    // load saved user style
+    let CUSTOM_STYLE_VERSION = 2;
+    let customStyleDefault = {
+        version: CUSTOM_STYLE_VERSION,
+        general: {},
+        light: {},
+        dark: {}
+    };
     if (cookies.customStyle) {
-        try {
-            customStyle = JSON.parse(cookies.customStyle);
-        } catch(e) {
-            console.log('Unable to read custom style. Probably old version remaininges.', e);
+        customStyleValues = JSON.parse(cookies.customStyle);
+        customStyleValues.version = parseInt(customStyleValues.version ?? 1);
+    }
+    else
+        customStyleValues = customStyleDefault;
+
+    // upgrade outdated user style
+    while (customStyleValues.version++ < CUSTOM_STYLE_VERSION) {
+                console.log('update settings ...v' + customStyleValues.version);
+        switch (customStyleValues.version) {
+            case 2:
+                delete customStyleValues.version;
+                customStyleValues = {
+                    version: 2,
+                    general: customStyleValues,
+                    light: {},
+                    dark: {}
+                };
+                break;
         }
     }
-    let list = settings.querySelector('#settings #list');
-    let itemTempalate = list.querySelector('#settings #item-template');
-    let style = document.styleSheets[0].cssRules[0].styleMap;
-    for (let key of style.keys()) {
+
+    // prepare inputs
+    let fillCssInputs = () =>
+    {
+        for (let variable of Object.keys(cssInputs)) {
+            cssInputs[variable].IM_value.value = customStyleValues[currentStyle][variable] ?? '';
+            cssInputs[variable].IM_value.placeholder = currentStyle === 'general' ? defaultCSS.get(variable)[0] : '';
+        }
+    };
+
+    let list = settings.querySelector('#list');
+    let itemTempalate = list.querySelector('#item-template');
+    let defaultCSS = document.styleSheets[0].cssRules[0].styleMap;
+
+    settings.querySelectorAll('.general, .light, .dark').forEach(el => el.addEventListener('click', e =>
+    {
+        currentStyle = el.className;
+        fillCssInputs();
+        updatePreviewStyle();
+    }));
+
+    for (let key of defaultCSS.keys()) {
         let item = itemTempalate.cloneNode(true);
         list.appendChild(item);
         item.classList.remove('hidden');
-        let label = item.querySelector('.label');
-        let preview = item.querySelector('.preview');
-        let value = item.querySelector('.value');
-        label.innerHTML = key.substr(2);
+        item.IM_label = item.querySelector('.label');
+        item.IM_preview = item.querySelector('.preview');
+        item.IM_value = item.querySelector('.value');
+        cssInputs[key] = item;
+        item.IM_label.innerHTML = key.substr(2);
         if (key.endsWith('-color') || key.endsWith('-background')) {
-            preview.style.background = 'var(' + key + ')';
+            item.IM_preview.style.background = 'var(' + key + ')';
         }
-        value.placeholder = style.get(key)[0];
-        value.value = customStyle[key] ?? '';
-        value.addEventListener('input', e => {
-            if (value.value.trim()) {
-                customStyle[key] = value.value.trim();
+        item.IM_value.addEventListener('input', e => {
+            if (item.IM_value.value.trim()) {
+                customStyleValues[currentStyle][key] = item.IM_value.value.trim();
             }
             else {
-                delete customStyle[key];
+                delete customStyleValues[currentStyle][key];
             }
-            applyCustomStyle();
+            updatePreviewStyle();
         });
     }
-    applyCustomStyle();
+
+    updateCustomStyles();
 }
 
 function toggleSettings()
 {
     settings.classList.toggle('hidden');
     if (!settings.classList.contains('hidden')) {
-        list.querySelector('.row:not(.hidden)').focus();
+        settings.querySelector('.' + currentStyle).click();
+        updateCustomStyles('disable');
+        (lastFocusedCssInput ?? Object.values(cssInputs)[0].IM_value).focus();
     }
     else {
-        document.cookie = 'customStyle=' + encodeURIComponent(JSON.stringify(customStyle));
+        updateCustomStyles();
+        updatePreviewStyle('disable');
+        document.cookie = 'customStyle=' + encodeURIComponent(JSON.stringify(customStyleValues));
+        lastFocusedCssInput = document.activeElement;
         input.focus();
     }
 }
 
-function applyCustomStyle()
+function updatePreviewStyle(disable = false)
 {
-    let css = ':root{' + Object.entries(customStyle).map(e => e.join(':')).join(';') + '}';
-    customCSS.replace(css);
+    customCSS.preview.replace(disable ? '' : compileCSS(customStyleValues[currentStyle]));
+}
+
+function updateCustomStyles(disable = false)
+{
+    for (style of ['general', 'light', 'dark']) {
+        let css = disable ? '' : compileCSS(customStyleValues[style]);
+        if (style !== 'general') {
+            css = '@media (prefers-color-scheme: ' + style + '){' + css + '}';
+        }
+        customCSS[style].replace(css);
+    }
+}
+
+function compileCSS(styleValues)
+{
+    return ':root{' + Object.entries(styleValues).map(e => e.join(':')).join(';') + '}';
 }

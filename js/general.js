@@ -7,7 +7,6 @@ let startInfo = null;
 let settings = null;
 
 let docTitle = document.title;
-let customStyle = {};
 let currentFileHandle = null;
 let fileChanged = false;
 

@@ -11,7 +11,7 @@ if ('serviceWorker' in navigator) {
                     console.log('no previous service worker');
                     return;
                 }
-                console.log('previous service worker running');
+                console.log('previous service worker running...');
                 navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
 
                 // check for updates
