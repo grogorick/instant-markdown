@@ -324,13 +324,13 @@ span.eol-spaces {
     text-align: center;
     font-style: italic;
     cursor: text;
+    display: flex;
+    flex-direction: column;
 }
 #start-info h1 {
     color: #8881;
     font-size: 10vw;
-}
-#start-info p {
-    padding: 10pt 0;
+    margin: 0;
 }
 #start-info #pwa-install {
     background: #057EAE;
