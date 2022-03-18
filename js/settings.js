@@ -1,4 +1,5 @@
 let currentStyle = 'general';
+let defaultCSS = null;
 let customCSS = null;
 let customStyleValues = null;
 let cssInputs = {};
@@ -54,17 +55,22 @@ function setupSettings()
     }
 
     // prepare inputs
+    let list = settings.querySelector('#list');
+    let itemTempalate = list.querySelector('#item-template');
+    defaultCSS = {
+        general: document.styleSheets[0].cssRules[0],
+        light: document.styleSheets[0].cssRules[1].cssRules[0],
+        dark: document.styleSheets[0].cssRules[2].cssRules[0]
+    };
+
     let fillCssInputs = () =>
     {
         for (let variable of Object.keys(cssInputs)) {
             cssInputs[variable].IM_value.value = customStyleValues[currentStyle][variable] ?? '';
-            cssInputs[variable].IM_value.placeholder = currentStyle === 'general' ? defaultCSS.get(variable)[0] : '';
+            cssInputs[variable].IM_value.placeholder =
+                (defaultCSS[currentStyle].styleMap.get(variable) ?? defaultCSS.general.styleMap.get(variable))[0];
         }
     };
-
-    let list = settings.querySelector('#list');
-    let itemTempalate = list.querySelector('#item-template');
-    let defaultCSS = document.styleSheets[0].cssRules[0].styleMap;
 
     settings.querySelectorAll('.general, .light, .dark').forEach(el => el.addEventListener('click', e =>
     {
@@ -73,7 +79,7 @@ function setupSettings()
         updatePreviewStyle();
     }));
 
-    for (let key of defaultCSS.keys()) {
+    for (let key of defaultCSS.general.styleMap.keys()) {
         let item = itemTempalate.cloneNode(true);
         list.appendChild(item);
         item.classList.remove('hidden');
@@ -118,13 +124,19 @@ function toggleSettings()
 
 function updatePreviewStyle(disable = false)
 {
-    customCSS.preview.replace(disable ? '' : compileCSS(customStyleValues[currentStyle]));
+    let css = '';
+    if (!disable) {
+        css =   defaultCSS.general.cssText +
+                defaultCSS[currentStyle].cssText +
+                compileCSSFromInput(customStyleValues[currentStyle]);
+    }
+    customCSS.preview.replace(css);
 }
 
 function updateCustomStyles(disable = false)
 {
     for (style of ['general', 'light', 'dark']) {
-        let css = disable ? '' : compileCSS(customStyleValues[style]);
+        let css = disable ? '' : compileCSSFromInput(customStyleValues[style]);
         if (style !== 'general') {
             css = '@media (prefers-color-scheme: ' + style + '){' + css + '}';
         }
@@ -132,7 +144,7 @@ function updateCustomStyles(disable = false)
     }
 }
 
-function compileCSS(styleValues)
+function compileCSSFromInput(styleValues)
 {
     return ':root{' + Object.entries(styleValues).map(e => e.join(':')).join(';') + '}';
 }
