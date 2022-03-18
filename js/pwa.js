@@ -12,7 +12,15 @@ if ('serviceWorker' in navigator) {
                     return;
                 }
                 console.log('previous service worker running...');
-                navigator.serviceWorker.controller.postMessage({ type: 'GET_VERSION' });
+
+                // version
+                navigator.serviceWorker.controller.postMessage({ type: 'LOG-VERSION' });
+                let xr = new XMLHttpRequest();
+                xr.onload = () => {
+                    document.querySelector('#version').innerHTML = xr.responseText;
+                }
+                xr.open('GET', 'GET-VERSION');
+                xr.send();
 
                 // check for updates
                 setInterval(() => {

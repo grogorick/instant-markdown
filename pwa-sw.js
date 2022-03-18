@@ -2,7 +2,7 @@ let CACHE_VERSION = '6';
 let CACHE_NAME = 'instant-markdown-offline-cache-v' + CACHE_VERSION;
 
 self.addEventListener('message', async e => {
-    if (e.data && e.data.type === 'GET_VERSION')
+    if (e.data && e.data.type === 'LOG-VERSION')
         console.log('-> cache version: ', CACHE_VERSION);
 });
 
@@ -59,6 +59,11 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+    if (e.request.url.endsWith('GET-VERSION')) {
+        e.respondWith(new Response(CACHE_VERSION));
+        return;
+    }
+
     let query = 'get: ' + new URL(e.request.url).pathname;
     // console.log(query + ': fetch...');
     let request = e.request.url + '?v' + CACHE_VERSION;

@@ -436,19 +436,20 @@ body.settings-visible {
 #controls-info p.more {
     margin-top: 0;
 }
-#controls-info span:first-child {
+#controls-info p span:first-child {
     display: inline-block;
     width: 70pt;
     font-weight: bold;
     vertical-align: top;
 }
-#controls-info span:last-child {
+#controls-info p span:last-child {
     display: inline-block;
     width: calc(100% - 70pt);
 }
 
 #settings #about {
     float: right;
+    text-align: right;
     margin-top: 30pt;
 }
 @media only screen and (min-width: 768px) {
