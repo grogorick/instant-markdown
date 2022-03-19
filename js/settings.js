@@ -68,14 +68,28 @@ function setupSettings()
         for (let variable of Object.keys(cssInputs)) {
             let input = cssInputs[variable].IM_value;
             input.value = customStyleValues[currentStyle][variable] ?? '';
-            let currentStyleValue = defaultCSS[currentStyle].styleMap.get(variable);
-            if (currentStyleValue) {
-                input.placeholder = currentStyleValue[0].trim();
-                input.classList.add('has-own-default');
+
+            let currentStyleDefaultValue = defaultCSS[currentStyle].styleMap.get(variable);
+            if (currentStyleDefaultValue) {
+                input.placeholder = currentStyleDefaultValue[0].trim();
+                input.classList.add('own-default');
+                input.classList.remove('general-custom');
+                input.classList.remove('general-default');
             }
             else {
-                input.placeholder = defaultCSS.general.styleMap.get(variable)[0].trim();
-                input.classList.remove('has-own-default');
+                let generalStyleCustomValue = customStyleValues.general[variable];
+                if (generalStyleCustomValue) {
+                    input.placeholder = generalStyleCustomValue;
+                    input.classList.remove('own-default');
+                    input.classList.add('general-custom');
+                    input.classList.remove('general-default');
+                }
+                else {
+                    input.placeholder = defaultCSS.general.styleMap.get(variable)[0].trim();
+                    input.classList.remove('own-default');
+                    input.classList.remove('general-custom');
+                    input.classList.add('general-default');
+                }
             }
         }
     };
@@ -142,9 +156,11 @@ function updatePreviewStyle(disable = false)
 {
     let css = '';
     if (!disable) {
-        css =   defaultCSS.general.cssText +
-                defaultCSS[currentStyle].cssText +
-                compileCSSFromInput(customStyleValues[currentStyle]);
+        if (currentStyle !== 'general')
+            css = defaultCSS.general.cssText +
+                  compileCSSFromInput(customStyleValues.general);
+        css += defaultCSS[currentStyle].cssText,
+               compileCSSFromInput(customStyleValues[currentStyle]);
     }
     customCSS.preview.replace(css);
 }

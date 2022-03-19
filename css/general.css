@@ -421,11 +421,14 @@ body.settings-visible {
     outline: none;
     border-color: #8886;
 }
-#settings #list .value::placeholder {
-    color: #8883;
+#settings #list .value.own-default::placeholder {
+    color: #888B;
 }
-#settings #list .value.has-own-default::placeholder {
-    color: #888A;
+#settings #list .value.general-custom::placeholder {
+    color: #8887;
+}
+#settings #list .value.general-default::placeholder {
+    color: #8883;
 }
 
 #controls-info {
