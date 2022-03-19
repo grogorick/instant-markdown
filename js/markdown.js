@@ -62,16 +62,29 @@ for (let f in formats.inline) {
 
 function setupMarkdown()
 {
+    let selectionTimout = null;
     input.addEventListener('input', e =>
     {
         fileChanged = !!input.value.length;
         updateMarkdown();
         if (e.inputType.startsWith('deleteContent'))
             updateSelection(e);
+        else
+            selectionTimout = setTimeout(() =>
+            {
+                selectionTimout = null;
+                updateSelection(e);
+            }, 200);
     });
-    updateMarkdown();
 
-    document.addEventListener('selectionchange', updateSelection);
+    document.addEventListener('selectionchange', e =>
+    {
+        if (selectionTimout) {
+            clearTimeout(selectionTimout);
+            selectionTimout = null;
+        }
+        updateSelection(e);
+    });
 
     startInfo.addEventListener('click', e => input.focus());
     display.addEventListener('click', e => {
