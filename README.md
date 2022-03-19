@@ -11,7 +11,7 @@ Supports to be installed as web app (PWA) to look and feel almost like a native 
 - Headings (6 levels)  
 `# title`  
 `## title`  
-...
+...  
 `###### title`
 - Bullet point lists  
 `* list item`  
@@ -20,7 +20,8 @@ Supports to be installed as web app (PWA) to look and feel almost like a native 
 - Quotes  
 `> quoted text`
 - Code sections  
-` ``` code ``` ` or `~~~ code ~~~`
+` ``` code secion ``` `  
+`~~~ code secion ~~~`
 - Horizontal rule  
 `***` or `---` or `___`
 
@@ -28,13 +29,14 @@ Supports to be installed as web app (PWA) to look and feel almost like a native 
 - **Bold** or __bold__
 - *Italic* or _italic_
 - ~~Strikethrough~~
-- `Inline code`
+- `Code`
 - [Links](https://github.com/grogorick/instant-markdown)
 - ![Images](https://raw.githubusercontent.com/grogorick/instant-markdown/master/favicon.png)
 - \`Escaped \*formatting \#characters
 
 ### Customization
-Access to pre-defined CSS variables (via *Esc* key) to readily adjust the rendering style.
+Pre-defined light and dark modes that are automatically applied based on system/browser mode.  
+Access to various style variables (via *Esc* key) to readily adjust the rendering style.
 
 ### File access
 - Ctrl+O or drag 'n drop to open a file
@@ -42,7 +44,7 @@ Access to pre-defined CSS variables (via *Esc* key) to readily adjust the render
 
 ### Known issues and missing features:
 - Click to move cursor to that exact position
-- Text selection
+- Mouse text selection (selection via keyboard works, but is not visible)
 - Multiline inline formatting
 - Task lists
 - Collapse sections
