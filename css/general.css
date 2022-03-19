@@ -448,22 +448,27 @@ body.settings-visible {
 }
 
 #settings #about {
+    color: #8886;
     float: right;
     text-align: right;
     margin-top: 30pt;
 }
 @media only screen and (min-width: 768px) {
     #settings #about {
-        margin-top: 5pt;
+        margin-top: 0;
+        transform: translateY(-100%);
     }
-}
-#settings #about {
-    color: #8886;
 }
 #settings #about a {
     text-decoration: none;
     color: #8886;
     font-weight: bold;
+}
+
+#settings > div::after {
+    clear: both;
+    content: '';
+    display: block;
 }
 
 
