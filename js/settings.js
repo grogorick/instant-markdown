@@ -172,9 +172,12 @@ function updatePreviewStyle(disable = false)
 function updateCustomStyles(disable = false)
 {
     for (style of ['general', 'light', 'dark']) {
-        let css = disable ? '' : compileCSSFromInput(customStyleValues[style]);
-        if (style !== 'general') {
-            css = '@media (prefers-color-scheme: ' + style + '){' + css + '}';
+        let css = '';
+        if (!disable) {
+            css = compileCSSFromInput(customStyleValues[style]);
+            if (style !== 'general') {
+                css = '@media (prefers-color-scheme: ' + style + '){' + css + '}';
+            }
         }
         customCSS[style].replace(css);
     }
