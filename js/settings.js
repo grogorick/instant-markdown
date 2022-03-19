@@ -26,7 +26,9 @@ function setupSettings()
     };
     customCSS = {
         general: new CSSStyleSheet(),
+        lightDefault: new CSSStyleSheet({ media: document.styleSheets[0].cssRules[CSS_LIGHT].cssText }),
         light: new CSSStyleSheet(),
+        darkDefault: new CSSStyleSheet({ media: document.styleSheets[0].cssRules[CSS_DARK].cssText }),
         dark: new CSSStyleSheet(),
         preview: new CSSStyleSheet()
     };
