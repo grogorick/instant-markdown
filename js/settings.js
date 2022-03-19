@@ -1,4 +1,4 @@
-let currentStyle = 'general';
+let currentStyle = null;
 let defaultCSS = null;
 let customCSS = null;
 let customStyleValues = null;
@@ -110,6 +110,12 @@ function setupSettings()
         });
     }
 
+    if (window.matchMedia('(prefers-color-scheme: light)').matches)
+        currentStyle = 'light';
+    else if (window.matchMedia('(prefers-color-scheme: dark)').matches)
+        currentStyle = 'dark';
+    else
+        currentStyle = 'general';
     updateCustomStyles();
 }
 
