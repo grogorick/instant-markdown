@@ -87,24 +87,24 @@ function setupSettings()
         updatePreviewStyle();
     }));
 
-    for (let key of defaultCSS.general.styleMap.keys()) {
+    for (let variable of defaultCSS.general.styleMap.keys()) {
         let item = itemTempalate.cloneNode(true);
         list.appendChild(item);
         item.classList.remove('hidden');
         item.IM_label = item.querySelector('.label');
         item.IM_preview = item.querySelector('.preview');
         item.IM_value = item.querySelector('.value');
-        cssInputs[key] = item;
-        item.IM_label.innerHTML = key.substr(2);
-        if (key.endsWith('-color') || key.endsWith('-background')) {
-            item.IM_preview.style.background = 'var(' + key + ')';
+        cssInputs[variable] = item;
+        item.IM_label.innerHTML = variable.substr(2);
+        if (variable.endsWith('-color') || variable.endsWith('-background')) {
+            item.IM_preview.style.background = 'var(' + variable + ')';
         }
         item.IM_value.addEventListener('input', e => {
             if (item.IM_value.value.trim()) {
-                customStyleValues[currentStyle][key] = item.IM_value.value.trim();
+                customStyleValues[currentStyle][variable] = item.IM_value.value.trim();
             }
             else {
-                delete customStyleValues[currentStyle][key];
+                delete customStyleValues[currentStyle][variable];
             }
             updatePreviewStyle();
         });
