@@ -424,6 +424,12 @@ body.settings-visible {
     background: var(--background);
     border: 1px solid #8883;
 }
+#settings #list .value::placeholder {
+    color: #8883;
+}
+#settings #list .value.has-own-default::placeholder {
+    color: #888A;
+}
 
 #controls-info {
     margin-top: 20pt;

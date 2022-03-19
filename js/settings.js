@@ -66,9 +66,17 @@ function setupSettings()
     let fillCssInputs = () =>
     {
         for (let variable of Object.keys(cssInputs)) {
-            cssInputs[variable].IM_value.value = customStyleValues[currentStyle][variable] ?? '';
-            cssInputs[variable].IM_value.placeholder =
-                (defaultCSS[currentStyle].styleMap.get(variable) ?? defaultCSS.general.styleMap.get(variable))[0];
+            let input = cssInputs[variable].IM_value;
+            input.value = customStyleValues[currentStyle][variable] ?? '';
+            let currentStyleValue = defaultCSS[currentStyle].styleMap.get(variable);
+            if (currentStyleValue) {
+                input.placeholder = currentStyleValue[0].trim();
+                input.classList.add('has-own-default');
+            }
+            else {
+                input.placeholder = defaultCSS.general.styleMap.get(variable)[0].trim();
+                input.classList.remove('has-own-default');
+            }
         }
     };
 
