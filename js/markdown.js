@@ -386,7 +386,7 @@ function detectSpecialTags(text, position, classList = new Set())
                 parts.push({ text: text.substr(0, match.m.index), pos: position, classList: [...classList.values()] }); updatePos();
                 parts.push({ text: '[', pos: position, classList: ['fmt'] }); updatePos();
                 for (let part of detectInlineFormats(linkText, position, classList)) {
-                    part.tag = { type: 'a', attrs: { href: linkURL }};
+                    part.tag = { type: 'a', attrs: { href: linkURL, target: '_blank' }};
                     part.classList.push('link');
                     parts.push(part);
                 }
@@ -396,7 +396,7 @@ function detectSpecialTags(text, position, classList = new Set())
             }
             else if (match === linkImplicit) {
                 parts.push({ text: text.substr(0, match.m.index) + match.m[match.f.match.before], pos: position, classList: [...classList.values()] }); updatePos();
-                parts.push({ text: linkURL, pos: position, classList: [...classList.values(), 'link'], tag: { type: 'a', attrs: { href: linkURL }}}); updatePos();
+                parts.push({ text: linkURL, pos: position, classList: [...classList.values(), 'link'], tag: { type: 'a', attrs: { href: linkURL, target: '_blank' }}}); updatePos();
                 text = text.substr(match.m.index + match.m[0].length - match.m[match.f.match.after].length);
             }
             else if (match === img) {
