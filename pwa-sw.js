@@ -1,4 +1,4 @@
-let CACHE_VERSION = '8';
+let CACHE_VERSION = '9';
 let CACHE_NAME = 'instant-markdown-offline-cache-v' + CACHE_VERSION;
 
 self.addEventListener('message', async e => {
