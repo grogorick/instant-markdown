@@ -15,6 +15,15 @@ function setupSettings()
             toggleSettings();
         }
     });
+
+    let CSS_GENERAL = 0;
+    let CSS_LIGHT = 1;
+    let CSS_DARK = 2;
+    defaultCSS = {
+        general: document.styleSheets[0].cssRules[CSS_GENERAL],
+        light: document.styleSheets[0].cssRules[CSS_LIGHT].cssRules[0],
+        dark: document.styleSheets[0].cssRules[CSS_DARK].cssRules[0]
+    };
     customCSS = {
         general: new CSSStyleSheet(),
         light: new CSSStyleSheet(),
@@ -54,46 +63,7 @@ function setupSettings()
         }
     }
 
-    // prepare inputs
-    let list = settings.querySelector('#list');
-    let itemTempalate = list.querySelector('#item-template');
-    defaultCSS = {
-        general: document.styleSheets[0].cssRules[0],
-        light: document.styleSheets[0].cssRules[1].cssRules[0],
-        dark: document.styleSheets[0].cssRules[2].cssRules[0]
-    };
-
-    let fillCssInputs = () =>
-    {
-        for (let variable of Object.keys(cssInputs)) {
-            let input = cssInputs[variable].IM_value;
-            input.value = customStyleValues[currentStyle][variable] ?? '';
-
-            let currentStyleDefaultValue = defaultCSS[currentStyle].styleMap.get(variable);
-            if (currentStyleDefaultValue) {
-                input.placeholder = currentStyleDefaultValue[0].trim();
-                input.classList.add('own-default');
-                input.classList.remove('general-custom');
-                input.classList.remove('general-default');
-            }
-            else {
-                let generalStyleCustomValue = customStyleValues.general[variable];
-                if (generalStyleCustomValue) {
-                    input.placeholder = generalStyleCustomValue;
-                    input.classList.remove('own-default');
-                    input.classList.add('general-custom');
-                    input.classList.remove('general-default');
-                }
-                else {
-                    input.placeholder = defaultCSS.general.styleMap.get(variable)[0].trim();
-                    input.classList.remove('own-default');
-                    input.classList.remove('general-custom');
-                    input.classList.add('general-default');
-                }
-            }
-        }
-    };
-
+    // mode buttons
     settings.querySelectorAll('.general, .light, .dark').forEach(el => el.addEventListener('click', e =>
     {
         currentStyle = el.className;
@@ -101,6 +71,9 @@ function setupSettings()
         updatePreviewStyle();
     }));
 
+    // css value inputs
+    let list = settings.querySelector('#list');
+    let itemTempalate = list.querySelector('#item-template');
     for (let variable of defaultCSS.general.styleMap.keys()) {
         let item = itemTempalate.cloneNode(true);
         list.appendChild(item);
@@ -149,6 +122,37 @@ function toggleSettings()
         document.cookie = 'customStyle=' + encodeURIComponent(JSON.stringify(customStyleValues));
         lastFocusedCssInput = document.activeElement;
         input.focus();
+    }
+}
+
+function fillCssInputs()
+{
+    for (let variable of Object.keys(cssInputs)) {
+        let input = cssInputs[variable].IM_value;
+        input.value = customStyleValues[currentStyle][variable] ?? '';
+
+        let currentStyleDefaultValue = defaultCSS[currentStyle].styleMap.get(variable);
+        if (currentStyleDefaultValue) {
+            input.placeholder = currentStyleDefaultValue[0].trim();
+            input.classList.add('own-default');
+            input.classList.remove('general-custom');
+            input.classList.remove('general-default');
+        }
+        else {
+            let generalStyleCustomValue = customStyleValues.general[variable];
+            if (generalStyleCustomValue) {
+                input.placeholder = generalStyleCustomValue;
+                input.classList.remove('own-default');
+                input.classList.add('general-custom');
+                input.classList.remove('general-default');
+            }
+            else {
+                input.placeholder = defaultCSS.general.styleMap.get(variable)[0].trim();
+                input.classList.remove('own-default');
+                input.classList.remove('general-custom');
+                input.classList.add('general-default');
+            }
+        }
     }
 }
 
