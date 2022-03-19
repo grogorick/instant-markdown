@@ -133,10 +133,9 @@ function updateMarkdown()
         // code section
         let prevIsCode = prevFormat && prevFormat === formats.line.code;
         let isMatchingCodeEnd = () =>
-        {
-            return (!lineFormatMatch.match.r.trim().length)
-                && (line.text.trim().startsWith(sections.last().content[0][0].left.text.trim()));
-        }
+            (!lineFormatMatch.match.r.trim().length) &&
+            (line.text.trim().startsWith(sections.last().content[0][0].left.text.trim()));
+
         if (lineFormatMatch.format === formats.line.code && (!prevIsCode || isMatchingCodeEnd())) {
             if (!prevIsCode)
                 sections.push(newSection({ format: lineFormatMatch.format, content: [[line]], blankLinesPos: nextPosition }));
