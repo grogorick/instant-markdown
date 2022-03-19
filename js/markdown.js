@@ -2,12 +2,12 @@ let match13 = { l: 1, r: 3 };
 let formats = {
     line: {
         default:{ multiline: true },
-        h1:     { pattern: /^(\s{0,3}#(\s|$))(.*$)/, match: match13 },
-        h2:     { pattern: /^(\s{0,3}##(\s|$))(.*$)/, match: match13 },
-        h3:     { pattern: /^(\s{0,3}###(\s|$))(.*$)/, match: match13 },
-        h4:     { pattern: /^(\s{0,3}####(\s|$))(.*$)/, match: match13 },
-        h5:     { pattern: /^(\s{0,3}#####(\s|$))(.*$)/, match: match13 },
-        h6:     { pattern: /^(\s{0,3}######(\s|$))(.*$)/, match: match13 },
+        h1:     { pattern: /^(\s{0,3}#(\s|$))(.*$)/, match: match13, isHeading: true },
+        h2:     { pattern: /^(\s{0,3}##(\s|$))(.*$)/, match: match13, isHeading: true },
+        h3:     { pattern: /^(\s{0,3}###(\s|$))(.*$)/, match: match13, isHeading: true },
+        h4:     { pattern: /^(\s{0,3}####(\s|$))(.*$)/, match: match13, isHeading: true },
+        h5:     { pattern: /^(\s{0,3}#####(\s|$))(.*$)/, match: match13, isHeading: true },
+        h6:     { pattern: /^(\s{0,3}######(\s|$))(.*$)/, match: match13, isHeading: true },
         quote:  { pattern: /^(\s{0,3}>)($|\s*.*$)/, multiline: true, outerTag: 'div' },
         code:   { pattern: /^(\s{0,3}(`{3,}|~{3,}))($|\s*.*$)/, match: match13, outerTag: 'code' },
         ul:     { pattern: /^((-|\+|\*)(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
@@ -193,6 +193,24 @@ function updateMarkdown()
     // console.log(sections);
 
     // generate HTML
+    let headingLevel = {
+        list: [display, null, null, null, null, null, null],
+        current: 0,
+        set: (level, el, hl = headingLevel) =>
+        {
+            hl.list[hl.current = level] = el;
+            for (let i = level + 1; i < hl.list.length; ++i)
+                hl.list[i] = null;
+            return el;
+        },
+        getParent: (level, hll = headingLevel.list) =>
+        {
+            for (let i = level - 1; i >= 0; --i)
+                if (hll[i])
+                    return hll[i];
+        },
+        get: (level = headingLevel.current) => headingLevel.list[level]
+    };
     sections.forEach(section =>
     {
         let format = section.format;
@@ -254,6 +272,8 @@ function updateMarkdown()
                     }
                     lineDiv.appendChild(spanRight);
                     line.right.htmlTag = spanRight;
+                    line.right.htmlTag.priorityClick = e => {};
+                    line.right.htmlTag.addEventListener('click', e => line.right.htmlTag.priorityClick(e));
                     setupClick(line.right);
 
                     tag.appendChild(lineDiv);
@@ -287,7 +307,18 @@ function updateMarkdown()
                 setupClick(section.blankLines[c]);
             }
         }
-        display.appendChild(section.htmlTag);
+
+        // collapsable heading hierarchy
+        if (format.isHeading) {
+            let level = parseInt(format.className.substr(1));
+            let parent = headingLevel.getParent(level);
+            parent.appendChild(section.htmlTag);
+            let levelDiv = headingLevel.set(level, document.createElement('div'));
+            parent.appendChild(levelDiv);
+            section.content[0].lines[0].right.htmlTag.priorityClick = e => levelDiv.classList.toggle('hidden');
+        }
+        else
+            headingLevel.get().appendChild(section.htmlTag);
     });
 }
 

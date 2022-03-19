@@ -155,6 +155,7 @@ textarea:focus {
 #display .h5 p:first-child .right,
 #display .h6 p:first-child .right {
     font-weight: bold;
+    cursor: pointer;
 }
 #display .h1 p:first-child .line {
     font-size: 200%;
