@@ -79,6 +79,7 @@ function setupSettings()
     for (let variable of defaultCSS.general.styleMap.keys()) {
         let item = itemTempalate.cloneNode(true);
         list.appendChild(item);
+        item.removeAttribute('id');
         item.classList.remove('hidden');
         item.IM_label = item.querySelector('.label');
         item.IM_preview = item.querySelector('.preview');
