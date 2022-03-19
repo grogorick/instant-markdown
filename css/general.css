@@ -419,10 +419,15 @@ body.settings-visible {
     width: 10pt;
     height: 10pt;
 }
-#settings #list input {
+#settings #list .value {
     color: var(--text-color);
     background: var(--background);
     border: 1px solid #8883;
+    padding: 5pt 10pt;
+}
+#settings #list .value:focus{
+    outline: none;
+    border-color: #8886;
 }
 #settings #list .value::placeholder {
     color: #8883;
