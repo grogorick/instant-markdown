@@ -414,7 +414,7 @@ function detectSpecialTags(text, position, classList = new Set())
         parts.push({ text: text, pos: position, classList: [...classList.values()] });
         if (text.endsWith('  ')) {
             parts.last().text = text.slice(0, -2);
-            parts.push({ text: '__', pos: position + text.length - 2, classList: ['fmt', 'eol-spaces'] });
+            parts.push({ text: ' &#x21a9;', pos: position + text.length - 2, classList: ['fmt', 'eol-spaces'] });
         }
     }
     return parts;

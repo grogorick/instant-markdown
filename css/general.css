@@ -271,14 +271,6 @@ textarea:focus {
     background: var(--code-background-color);
 }
 
-span.eol-spaces {
-    color: var(--inline-format-color);
-    padding-bottom: 1px;
-    border-bottom: 1px solid var(--inline-format-color);
-    line-height: .7em;
-    vertical-align: top;
-}
-
 #display .right a.link {
     color: var(--link-color);
     font-weight: bold;
