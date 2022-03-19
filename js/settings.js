@@ -163,7 +163,7 @@ function updatePreviewStyle(disable = false)
         if (currentStyle !== 'general')
             css = defaultCSS.general.cssText +
                   compileCSSFromInput(customStyleValues.general);
-        css += defaultCSS[currentStyle].cssText,
+        css += defaultCSS[currentStyle].cssText +
                compileCSSFromInput(customStyleValues[currentStyle]);
     }
     customCSS.preview.replace(css);
