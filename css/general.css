@@ -387,12 +387,16 @@ body.settings-visible {
 }
 #settings #list {
     padding: 20pt;
+    background: var(--background);
     border: 1px solid #8883;
     box-shadow: 3pt 3pt 10pt #8886;
 }
 #settings #list .row {
     margin: 5pt 0;
     text-align: center;
+}
+#settings #list .row:hover {
+    background: #8881;
 }
 #settings #list .label {
     text-align: left;
