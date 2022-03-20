@@ -66,22 +66,12 @@ function setupMarkdown()
     input.addEventListener('input', e =>
     {
         fileChanged = !!input.value.length;
-        console.log('markdown');
         updateMarkdown();
-        console.log('markdown selection');
         updateSelection(e);
     });
 
-    ['keyup', 'focus'].forEach(evtName => input.addEventListener(evtName, e =>
-    {
-        console.log('selection change ' + evtName);
-        updateSelection(e);
-    }));
-    document.addEventListener('selectionchange', e =>
-    {
-        console.log('document selection change');
-        updateSelection(e);
-    });
+    ['keyup', 'focus'].forEach(evtName => input.addEventListener(evtName, updateSelection));
+    document.addEventListener('selectionchange', updateSelection);
 
     startInfo.addEventListener('click', e => input.focus());
     display.addEventListener('click', e => {
@@ -187,7 +177,6 @@ function updateMarkdown()
         }
         position = nextPosition;
     });
-    // console.log(sections);
 
     // generate HTML
     let headingLevel = {
@@ -451,20 +440,14 @@ function updateSelection(evt)
 {
     if (evt)
         evt.stopPropagation();
-    console.log(new Date().getSeconds() + ' > update selection?');
 
-    if (input !== document.activeElement || !input.value.length) {
-        console.log('not input');
+    if (input !== document.activeElement || !input.value.length)
         return;
-    }
 
     let selectionStartChanged = input.selectionStart !== (selectionStart.pos ?? -1);
     let selectionEndChanged = input.selectionEnd !== (selectionEnd.pos ?? -1);
-    if (!(selectionStartChanged || selectionEndChanged)) {
-        console.log('not changed');
+    if (!(selectionStartChanged || selectionEndChanged))
         return;
-    }
-    console.log('> update selection', evt);
 
     document.querySelectorAll('#display .current').forEach(el => el.classList.remove('current'));
     display.querySelectorAll('.cursor').forEach(el => el.remove());
