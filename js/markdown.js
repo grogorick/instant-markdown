@@ -449,18 +449,58 @@ function updateSelection(evt)
     if (!(selectionStartChanged || selectionEndChanged))
         return;
 
+    document.querySelectorAll('#display .selection').forEach(el => el.classList.remove('selection'));
     document.querySelectorAll('#display .current').forEach(el => el.classList.remove('current'));
     display.querySelectorAll('.cursor').forEach(el => el.remove());
 
     selectionStart = trackSelection(input.selectionStart);
     selectionEnd = trackSelection(input.selectionEnd);
 
-    Object.values(selectionStart.el).forEach(el => el.htmlTag.classList.add('current'));
-    Object.values(selectionEnd.el).forEach(el => el.htmlTag.classList.add('current'));
+
+    // selection
+    let tmpItems = [];
+    for (let i = sections.indexOf(selectionStart.el.section), end = sections.indexOf(selectionEnd.el.section); i <= end; ++i) {
+        let section = sections[i];
+        section.htmlTag.classList.add('selection');
+
+        [section.content, section.blankLines].forEach(items => items.forEach(item => tmpItems.push(item)));
+    }
+    let tmpLinesRight = [];
+    for (let i = tmpItems.indexOf(selectionStart.el.item), end = tmpItems.indexOf(selectionEnd.el.item); i <= end; ++i) {
+        let item = tmpItems[i];
+        item.htmlTag.classList.add('selection');
+
+        item.lines.forEach(line =>
+        {
+            line.right.line = line;
+            tmpLinesRight.push(line.right);
+        });
+    }
+    let tmpParts = [];
+    for (let i = tmpLinesRight.indexOf(selectionStart.el.line), end = tmpLinesRight.indexOf(selectionEnd.el.line); i <= end; ++i) {
+        let lineRight = tmpLinesRight[i];
+        lineRight.htmlTag.classList.add('selection');
+
+        if (lineRight.line.left.text)
+            tmpParts.push(lineRight.line.left);
+        if (lineRight.parts?.length)
+            lineRight.parts.forEach(part => tmpParts.push(part));
+        else
+            tmpParts.push(lineRight);
+    }
+    let partOrFormatStart = selectionStart.el.inlinePart ?? selectionStart.el.format;
+    let partOrFormatEnd = selectionEnd.el.inlinePart ?? selectionEnd.el.format;
+    let iStart = tmpParts.indexOf(partOrFormatStart); if (iStart === -1) iStart = 0;
+    let iEnd = tmpParts.indexOf(partOrFormatEnd); if (iEnd === -1) iEnd = tmpParts.length - 1;
+    for (let i = iStart, end = iEnd; i <= end; ++i) {
+        tmpParts[i].htmlTag.classList.add('selection');
+    }
 
 
     // cursor
-    let selection = (selectionStart.pos === selectionEnd.pos || selectionEndChanged) ? selectionEnd : selectionStart;
+    let selection = input.selectionDirection === 'forward' ? selectionEnd : selectionStart;
+    Object.values(selection.el).forEach(el => el.htmlTag.classList.add('current'));
+
     let cursorParent = selection.el.format || selection.el.inlinePart || selection.el.line || selection.el.item;
     if (cursorParent.single) {
         let i = document.createElement('i');
@@ -505,31 +545,17 @@ function trackSelection(cursorPos)
     if (!selection.section)
         selection.section = sections.last();
 
-    // item
-    if (selection.section.blankLinesPos > cursorPos) {
-        for (let i in selection.section.content) {
-            let item = selection.section.content[i];
-            if (item.pos > cursorPos) {
-                selection.item = selection.section.content[i - 1];
-                break;
-            }
+    // item or blank line
+    let itemList = (selection.section.blankLinesPos > cursorPos) ? selection.section.content : selection.section.blankLines;
+    for (let i in itemList) {
+        let item = itemList[i];
+        if (item.pos > cursorPos) {
+            selection.item = itemList[i - 1];
+            break;
         }
-        if (!selection.item)
-            selection.item = selection.section.content.last();
     }
-
-    // blank lines
-    else {
-        for (let i in selection.section.blankLines) {
-            let item = selection.section.blankLines[i];
-            if (item.pos > cursorPos) {
-                selection.item = selection.section.blankLines[i - 1];
-                break;
-            }
-        }
-        if (!selection.item)
-            selection.item = selection.section.blankLines.last();
-    }
+    if (!selection.item)
+        selection.item = itemList.last();
 
     // line
     let selectedLine = null;

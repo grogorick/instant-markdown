@@ -4,10 +4,15 @@
     --line-format-background: transparent;
     --inline-format-color: #8886;
 
-    --highlight-section-color: transparent;
-    --highlight-item-color: transparent;
-    --highlight-line-color: #057EAE22;
-    --highlight-inline-part-color: transparent;
+    --current-section-color: transparent;
+    --current-item-color: transparent;
+    --current-line-color: #057EAE22;
+    --current-inline-part-color: #1118;
+
+    --selection-section-color: transparent;
+    --selection-item-color: transparent;
+    --selection-line-color: #057EAE11;
+    --selection-inline-part-color: transparent;
 
     --text-font: 'OpenSans';
     --text-color: black;
@@ -126,17 +131,30 @@ textarea:focus {
     height: 1em;
 }
 
+#display .selection {
+    background: var(--selection-section-color);
+}
+#display .selection .selection {
+    background: var(--selection-item-color);
+}
+#display .selection .selection .selection {
+    background: var(--selection-line-color);
+}
+#display .selection .selection .selection .selection {
+    background: var(--selection-inline-part-color);
+}
+
 #display .current {
-    background: var(--highlight-section-color);
+    background: var(--current-section-color);
 }
 #display .current .current {
-    background: var(--highlight-item-color);
+    background: var(--current-item-color);
 }
 #display .current .current .current {
-    background: var(--highlight-line-color);
+    background: var(--current-line-color);
 }
 #display .current .current .current .current {
-    background: var(--highlight-inline-part-color);
+    background: var(--current-inline-part-color);
 }
 
 #display .heading p:first-child .line {
