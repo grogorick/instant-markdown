@@ -63,27 +63,23 @@ for (let f in formats.inline) {
 
 function setupMarkdown()
 {
-    let selectionTimout = null;
     input.addEventListener('input', e =>
     {
         fileChanged = !!input.value.length;
+        console.log('markdown');
         updateMarkdown();
-        if (e.inputType.startsWith('deleteContent'))
-            updateSelection(e);
-        else
-            selectionTimout = setTimeout(() =>
-            {
-                selectionTimout = null;
-                updateSelection(e);
-            }, 200);
+        console.log('markdown selection');
+        updateSelection(e);
     });
 
+    ['keyup', 'focus'].forEach(evtName => input.addEventListener(evtName, e =>
+    {
+        console.log('selection change ' + evtName);
+        updateSelection(e);
+    }));
     document.addEventListener('selectionchange', e =>
     {
-        if (selectionTimout) {
-            clearTimeout(selectionTimout);
-            selectionTimout = null;
-        }
+        console.log('document selection change');
         updateSelection(e);
     });
 
@@ -455,14 +451,20 @@ function updateSelection(evt)
 {
     if (evt)
         evt.stopPropagation();
+    console.log(new Date().getSeconds() + ' > update selection?');
 
-    if (input !== document.activeElement || !input.value.length)
+    if (input !== document.activeElement || !input.value.length) {
+        console.log('not input');
         return;
+    }
 
     let selectionStartChanged = input.selectionStart !== (selectionStart.pos ?? -1);
     let selectionEndChanged = input.selectionEnd !== (selectionEnd.pos ?? -1);
-    if (!(selectionStartChanged || selectionEndChanged))
+    if (!(selectionStartChanged || selectionEndChanged)) {
+        console.log('not changed');
         return;
+    }
+    console.log('> update selection', evt);
 
     document.querySelectorAll('#display .current').forEach(el => el.classList.remove('current'));
     display.querySelectorAll('.cursor').forEach(el => el.remove());
