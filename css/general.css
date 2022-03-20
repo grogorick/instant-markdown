@@ -139,21 +139,11 @@ textarea:focus {
     background: var(--highlight-inline-part-color);
 }
 
-#display .h1 p:first-child .line,
-#display .h2 p:first-child .line,
-#display .h3 p:first-child .line,
-#display .h4 p:first-child .line,
-#display .h5 p:first-child .line,
-#display .h6 p:first-child .line {
+#display .heading p:first-child .line {
     margin: 0;
     padding-bottom: 5pt;
 }
-#display .h1 p:first-child .right,
-#display .h2 p:first-child .right,
-#display .h3 p:first-child .right,
-#display .h4 p:first-child .right,
-#display .h5 p:first-child .right,
-#display .h6 p:first-child .right {
+#display .heading p:first-child .right {
     font-weight: bold;
     cursor: pointer;
 }
