@@ -10,8 +10,8 @@ let formats = {
         h6:     { pattern: /^(\s{0,3}######(\s|$))(.*$)/, match: match13, classes: ['heading'] },
         quote:  { pattern: /^(\s{0,3}>)($|\s*.*$)/, multiline: true, outerTag: 'div' },
         code:   { pattern: /^(\s{0,3}(`{3,}|~{3,}))($|\s*.*$)/, match: match13, outerTag: 'code' },
-        ul:     { pattern: /^((-|\+|\*)(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
-        ol:     { pattern: /^(\d+(.|\))(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ol', innerTag: 'li' },
+        ul:     { pattern: /^((-|\+|\*)(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li', classes: ['list'] },
+        ol:     { pattern: /^(\d+(.|\))(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ol', innerTag: 'li', classes: ['list'] },
         hr:     { pattern: /^(\s*((\*\s*){3,}|(-\s*){3,}|(_\s*){3,}))()$/, match: { l: 1, r: 6 }, innerTag: 'div' }
     },
     inline: {
@@ -465,28 +465,24 @@ function updateSelection(evt)
 
         [section.content, section.blankLines].forEach(items => items.forEach(item => tmpItems.push(item)));
     }
-    let tmpLinesRight = [];
+    let tmpLines = [];
     for (let i = tmpItems.indexOf(selectionStart.el.item), end = tmpItems.indexOf(selectionEnd.el.item); i <= end; ++i) {
         let item = tmpItems[i];
         item.htmlTag.classList.add('selection');
 
-        item.lines.forEach(line =>
-        {
-            line.right.line = line;
-            tmpLinesRight.push(line.right);
-        });
+        item.lines.forEach(line => tmpLines.push(line));
     }
     let tmpParts = [];
-    for (let i = tmpLinesRight.indexOf(selectionStart.el.line), end = tmpLinesRight.indexOf(selectionEnd.el.line); i <= end; ++i) {
-        let lineRight = tmpLinesRight[i];
-        lineRight.htmlTag.classList.add('selection');
+    for (let i = tmpLines.indexOf(selectionStart.el.line), end = tmpLines.indexOf(selectionEnd.el.line); i <= end; ++i) {
+        let line = tmpLines[i];
+        line.htmlTag.classList.add('selection');
 
-        if (lineRight.line.left.text)
-            tmpParts.push(lineRight.line.left);
-        if (lineRight.parts?.length)
-            lineRight.parts.forEach(part => tmpParts.push(part));
+        if (line.left.text)
+            tmpParts.push(line.left);
+        if (line.right.parts?.length)
+            line.right.parts.forEach(part => tmpParts.push(part));
         else
-            tmpParts.push(lineRight);
+            tmpParts.push(line.right);
     }
     let partOrFormatStart = selectionStart.el.inlinePart ?? selectionStart.el.format;
     let partOrFormatEnd = selectionEnd.el.inlinePart ?? selectionEnd.el.format;
@@ -568,7 +564,7 @@ function trackSelection(cursorPos)
     }
     if (!selectedLine)
         selectedLine = selection.item.lines.last();
-    selection.line = selectedLine.right;
+    selection.line = selectedLine;
 
     // format
     if (selectedLine.right.pos > cursorPos || (selectedLine.right.pos == cursorPos && selectedLine.left.text.length && !selectedLine.right.text.length && !selectedLine.left.text.endsWith(' '))) {
@@ -576,20 +572,20 @@ function trackSelection(cursorPos)
     }
 
     // inline part
-    else if (selection.line.parts?.length) {
-        for (let p in selection.line.parts) {
-            let part = selection.line.parts[p];
+    else if (selection.line.right.parts?.length) {
+        for (let p in selection.line.right.parts) {
+            let part = selection.line.right.parts[p];
             if (part.pos === cursorPos) {
                 selection.inlinePart = part;
                 break;
             }
             if (part.pos > cursorPos) {
-                selection.inlinePart = selection.line.parts[p - 1];
+                selection.inlinePart = selection.line.right.parts[p - 1];
                 break;
             }
         }
         if (!selection.inlinePart)
-            selection.inlinePart = selection.line.parts.last();
+            selection.inlinePart = selection.line.right.parts.last();
     }
 
     return { pos: cursorPos, el: selection };

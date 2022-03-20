@@ -137,10 +137,12 @@ textarea:focus {
 #display .selection .selection {
     background: var(--selection-item-color);
 }
-#display .selection .selection .selection {
+#display .selection .selection .selection,
+#display .list.selection .selection .selection .left {
     background: var(--selection-line-color);
 }
-#display .selection .selection .selection .selection {
+#display .selection .selection .selection .selection,
+#display .list.selection .selection .selection .selection.left {
     background: var(--selection-inline-part-color);
 }
 
@@ -150,10 +152,12 @@ textarea:focus {
 #display .current .current {
     background: var(--current-item-color);
 }
-#display .current .current .current {
+#display .current .current .current,
+#display .list.current .current .current .left {
     background: var(--current-line-color);
 }
-#display .current .current .current .current {
+#display .current .current .current .current,
+#display .list.current .current .current .current.left {
     background: var(--current-inline-part-color);
 }
 
