@@ -4,8 +4,9 @@ A minimal WYSIWYG-style markdown editor with **in-place editing** instead of the
 Give it a try at https://markdown.grogorick.de
 
 ## Features
-Aims to comply with [GitHub Flavored Markdown](https://github.github.com/gfm).  
-Supports to be installed as web app (PWA) to look and feel almost like a native editor app.
+- Aims to comply with [GitHub Flavored Markdown](https://github.github.com/gfm)
+- Installable web app (PWA) to look and feel almost like a native editor app
+- Click-collapsible sections
 
 ### Paragraph formatting
 - Headings (6 levels)  
@@ -35,8 +36,8 @@ Supports to be installed as web app (PWA) to look and feel almost like a native 
 - \`Escaped \*formatting \#characters
 
 ### Customization
-Pre-defined light and dark modes that are automatically applied based on system/browser mode.  
-Access to various style variables (via *Esc* key) to readily adjust the rendering style.
+- Pre-defined light and dark modes, automatically applied based on your system/browser mode.
+- Access to various style variables (via *Esc* key) to adjust the rendering style.
 
 ### File access
 - Ctrl+O or drag 'n drop to open a file
@@ -47,7 +48,6 @@ Access to various style variables (via *Esc* key) to readily adjust the renderin
 - Mouse text selection (selection via keyboard works, but is not visible)
 - Multiline inline formatting
 - Task lists
-- Collapse sections
 - Register PWA in OS to open \*.md files
 
 *Pull requests are welcome!*
