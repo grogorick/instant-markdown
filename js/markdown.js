@@ -2,12 +2,12 @@ let match13 = { l: 1, r: 3 };
 let formats = {
     line: {
         default:{ multiline: true },
-        h1:     { pattern: /^(\s{0,3}#(\s|$))(.*$)/, match: match13, isHeading: true },
-        h2:     { pattern: /^(\s{0,3}##(\s|$))(.*$)/, match: match13, isHeading: true },
-        h3:     { pattern: /^(\s{0,3}###(\s|$))(.*$)/, match: match13, isHeading: true },
-        h4:     { pattern: /^(\s{0,3}####(\s|$))(.*$)/, match: match13, isHeading: true },
-        h5:     { pattern: /^(\s{0,3}#####(\s|$))(.*$)/, match: match13, isHeading: true },
-        h6:     { pattern: /^(\s{0,3}######(\s|$))(.*$)/, match: match13, isHeading: true },
+        h1:     { pattern: /^(\s{0,3}#(\s|$))(.*$)/, match: match13, classes: ['heading'] },
+        h2:     { pattern: /^(\s{0,3}##(\s|$))(.*$)/, match: match13, classes: ['heading'] },
+        h3:     { pattern: /^(\s{0,3}###(\s|$))(.*$)/, match: match13, classes: ['heading'] },
+        h4:     { pattern: /^(\s{0,3}####(\s|$))(.*$)/, match: match13, classes: ['heading'] },
+        h5:     { pattern: /^(\s{0,3}#####(\s|$))(.*$)/, match: match13, classes: ['heading'] },
+        h6:     { pattern: /^(\s{0,3}######(\s|$))(.*$)/, match: match13, classes: ['heading'] },
         quote:  { pattern: /^(\s{0,3}>)($|\s*.*$)/, multiline: true, outerTag: 'div' },
         code:   { pattern: /^(\s{0,3}(`{3,}|~{3,}))($|\s*.*$)/, match: match13, outerTag: 'code' },
         ul:     { pattern: /^((-|\+|\*)(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li' },
@@ -40,8 +40,9 @@ let formats = {
 };
 
 for (let f in formats.line) {
+    formats.line[f] = Object.assign({ match: { l: 1, r: 2 }, classes: [], innerTag: 'p' }, formats.line[f]);
     formats.line[f].className = f;
-    formats.line[f] = Object.assign({ match: { l: 1, r: 2 }, innerTag: 'p' }, formats.line[f]);
+    formats.line[f].classes.push(f);
 }
 for (let f in formats.inline) {
     for (let p in formats.inline[f])
@@ -215,7 +216,7 @@ function updateMarkdown()
     {
         let format = section.format;
         section.htmlTag = document.createElement('div');
-        section.htmlTag.classList.add(format.className);
+        format.classes.forEach(className => section.htmlTag.classList.add(className));
 
         if (section.content.length) {
             let container = section.htmlTag;
@@ -309,7 +310,7 @@ function updateMarkdown()
         }
 
         // collapsable heading hierarchy
-        if (format.isHeading) {
+        if (format.classes.includes('heading')) {
             let level = parseInt(format.className.substr(1));
             let parent = headingLevel.getParent(level);
             parent.appendChild(section.htmlTag);
