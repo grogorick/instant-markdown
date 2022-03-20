@@ -147,6 +147,9 @@ textarea:focus {
     font-weight: bold;
     cursor: pointer;
 }
+#display .heading p:first-child .right span {
+    cursor: text;
+}
 #display .h1 p:first-child .line {
     font-size: 200%;
     padding-top: 20pt;
