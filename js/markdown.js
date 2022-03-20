@@ -497,7 +497,7 @@ function updateSelection(evt)
     let selection = input.selectionDirection === 'forward' ? selectionEnd : selectionStart;
     Object.values(selection.el).forEach(el => el.htmlTag.classList.add('current'));
 
-    let cursorParent = selection.el.format || selection.el.inlinePart || selection.el.line || selection.el.item;
+    let cursorParent = selection.el.format || selection.el.inlinePart || selection.el.line.right || selection.el.item;
     if (cursorParent.single) {
         let i = document.createElement('i');
         i.classList.add('cursor');
@@ -554,21 +554,23 @@ function trackSelection(cursorPos)
         selection.item = itemList.last();
 
     // line
-    let selectedLine = null;
     for (let l in selection.item.lines) {
         let line = selection.item.lines[l];
         if (line.pos > cursorPos) {
-            selectedLine = selection.item.lines[l - 1];
+            selection.line = selection.item.lines[l - 1];
             break;
         }
     }
-    if (!selectedLine)
-        selectedLine = selection.item.lines.last();
-    selection.line = selectedLine;
+    if (!selection.line)
+        selection.line = selection.item.lines.last();
 
     // format
-    if (selectedLine.right.pos > cursorPos || (selectedLine.right.pos == cursorPos && selectedLine.left.text.length && !selectedLine.right.text.length && !selectedLine.left.text.endsWith(' '))) {
-        selection.format = selectedLine.left;
+    if (selection.line.right.pos > cursorPos ||
+            (selection.line.right.pos == cursorPos &&
+             selection.line.left.text.length &&
+             !selection.line.right.text.length &&
+             !selection.line.left.text.endsWith(' '))) {
+        selection.format = selection.line.left;
     }
 
     // inline part
