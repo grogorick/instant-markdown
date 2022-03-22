@@ -91,7 +91,7 @@ function setupSettings()
         }
         item.IM_value.addEventListener('input', e => {
             if (item.IM_value.value.trim()) {
-                customStyleValues[currentStyle][variable] = item.IM_value.value.trim();
+                customStyleValues[currentStyle][variable] = addVarKeyword(item.IM_value.value.trim());
             }
             else {
                 delete customStyleValues[currentStyle][variable];
@@ -132,11 +132,11 @@ function fillCssInputs()
 {
     for (let variable of Object.keys(cssInputs)) {
         let input = cssInputs[variable].IM_value;
-        input.value = customStyleValues[currentStyle][variable] ?? '';
+        input.value = removeVarKeyword(customStyleValues[currentStyle][variable] ?? '');
 
         let currentStyleDefaultValue = defaultCSS[currentStyle].styleMap.get(variable);
         if (currentStyleDefaultValue) {
-            input.placeholder = currentStyleDefaultValue[0].trim();
+            input.placeholder = currentStyleDefaultValue[0].trim() || currentStyleDefaultValue[1]?.variable?.trim();
             input.classList.add('own-default');
             input.classList.remove('general-custom');
             input.classList.remove('general-default');
@@ -144,19 +144,33 @@ function fillCssInputs()
         else {
             let generalStyleCustomValue = customStyleValues.general[variable];
             if (generalStyleCustomValue) {
-                input.placeholder = generalStyleCustomValue;
+                input.placeholder = removeVarKeyword(generalStyleCustomValue);
                 input.classList.remove('own-default');
                 input.classList.add('general-custom');
                 input.classList.remove('general-default');
             }
             else {
-                input.placeholder = defaultCSS.general.styleMap.get(variable)[0].trim();
+                input.placeholder = defaultCSS.general.styleMap.get(variable)[0].trim() || defaultCSS.general.styleMap.get(variable)[1]?.variable?.trim();
                 input.classList.remove('own-default');
                 input.classList.remove('general-custom');
                 input.classList.add('general-default');
             }
         }
     }
+}
+
+function addVarKeyword(cssValue)
+{
+    if (cssValue.startsWith('--'))
+        return 'var(' + cssValue + ')';
+    return cssValue;
+}
+function removeVarKeyword(cssValue)
+{
+    match = cssValue.match(/^var\((.+)\)$/);
+    if (match)
+        return match[1];
+    return cssValue;
 }
 
 function updatePreviewStyle(disable = false)
