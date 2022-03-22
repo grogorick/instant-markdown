@@ -7,7 +7,7 @@
     --current-section-color: transparent;
     --current-item-color: transparent;
     --current-line-color: #057EAE22;
-    --current-inline-part-color: #1118;
+    --current-inline-part-color: var(--background);
 
     --selection-section-color: transparent;
     --selection-item-color: transparent;
