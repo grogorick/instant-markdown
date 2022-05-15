@@ -30,11 +30,13 @@
             <div>
                 <h2>Settings</h2>
                 <div id="custom-styles">
-                    <input type="radio" name="mode" id="custom-style-light" class="light"><label for="custom-style-light">Light Mode</label>
-                    <input type="radio" name="mode" id="custom-style-dark" class="dark"><label for="custom-style-dark">Dark Mode</label>
-                    <input type="radio" name="mode" id="custom-style-general" class="general"><label for="custom-style-general">Both</label>
+                    <input type="radio" name="mode" id="custom-style-light" class="light"><label for="custom-style-light" title="Light Mode">Light</label>
+                    <input type="radio" name="mode" id="custom-style-dark" class="dark"><label for="custom-style-dark" title="Dark Mode">Dark</label>
+                    <input type="radio" name="mode" id="custom-style-general" class="general"><label for="custom-style-general" title="Light or Dark Mode based on your browser settings">Automatic</label>
                 </div>
                 <div id="list">
+                    <div id="settings-info-selected">(Unset options are copied from the Automatic tab)</div>
+                    <div id="settings-info-automatic">(Options will be overridden if present in Light/Dark Mode tab)</div>
                     <div id="item-template" class="row hidden">
                         <div class="label"></div>
                         <div class="preview"></div>

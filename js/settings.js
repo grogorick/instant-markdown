@@ -30,6 +30,7 @@ function setupSettings()
         light: new CSSStyleSheet(),
         darkDefault: new CSSStyleSheet({ media: document.styleSheets[0].cssRules[CSS_DARK].cssText }),
         dark: new CSSStyleSheet(),
+        selected: new CSSStyleSheet(),
         preview: new CSSStyleSheet()
     };
     document.adoptedStyleSheets = Object.values(customCSS);
@@ -50,10 +51,10 @@ function setupSettings()
         customStyleValues = customStyleDefault;
 
     // upgrade outdated user style
-    while (customStyleValues.version++ < CUSTOM_STYLE_VERSION) {
-                console.log('update settings ...v' + customStyleValues.version);
+    while (customStyleValues.version < CUSTOM_STYLE_VERSION) {
+        console.log('update settings from v' + customStyleValues.version);
         switch (customStyleValues.version) {
-            case 2:
+            case 1:
                 delete customStyleValues.version;
                 customStyleValues = {
                     version: 2,
@@ -63,12 +64,28 @@ function setupSettings()
                 };
                 break;
         }
+        ++customStyleValues.version;
     }
 
     // mode buttons
+    let infoSelected = settings.querySelector('#settings-info-selected');
+    let infoAutomatic = settings.querySelector('#settings-info-automatic');
     settings.querySelectorAll('.general, .light, .dark').forEach(el => el.addEventListener('click', e =>
     {
         currentStyle = el.className;
+        switch (currentStyle) {
+            case 'light':
+            case 'dark':
+                customStyleValues['selectedStyle'] = currentStyle;
+                infoSelected.classList.remove('hidden');
+                infoAutomatic.classList.add('hidden');
+                break;
+            case 'general':
+                delete customStyleValues['selectedStyle'];
+                infoSelected.classList.add('hidden');
+                infoAutomatic.classList.remove('hidden');
+                break;
+        }
         fillCssInputs();
         updatePreviewStyle();
     }));
@@ -86,8 +103,11 @@ function setupSettings()
         item.IM_value = item.querySelector('.value');
         cssInputs[variable] = item;
         item.IM_label.innerHTML = variable.substr(2);
-        if (variable.endsWith('-color') || variable.endsWith('-background')) {
+        if (variable.endsWith('color') || variable.endsWith('background')) {
             item.IM_preview.style.background = 'var(' + variable + ')';
+        }
+        else {
+            item.IM_preview.style.visibility = 'hidden';
         }
         item.IM_value.addEventListener('input', e => {
             if (item.IM_value.value.trim()) {
@@ -100,13 +120,13 @@ function setupSettings()
         });
     }
 
-    if (window.matchMedia('(prefers-color-scheme: light)').matches)
-        currentStyle = 'light';
-    else if (window.matchMedia('(prefers-color-scheme: dark)').matches)
-        currentStyle = 'dark';
-    else
-        currentStyle = 'general';
+    currentStyle = customStyleValues['selectedStyle'] ?? 'general';
     updateCustomStyles();
+}
+
+function getBrowserStyle()
+{
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 function toggleSettings()
@@ -173,30 +193,38 @@ function removeVarKeyword(cssValue)
     return cssValue;
 }
 
+function generateCombinedCSS()
+{
+    let activeStyle = (currentStyle !== 'general') ? currentStyle : getBrowserStyle();
+    return defaultCSS.general.cssText +
+            compileCSSFromInput(customStyleValues.general) +
+            defaultCSS[activeStyle].cssText +
+            compileCSSFromInput(customStyleValues[activeStyle]);
+}
+
 function updatePreviewStyle(disable = false)
 {
-    let css = '';
-    if (!disable) {
-        if (currentStyle !== 'general')
-            css = defaultCSS.general.cssText +
-                  compileCSSFromInput(customStyleValues.general);
-        css += defaultCSS[currentStyle].cssText +
-               compileCSSFromInput(customStyleValues[currentStyle]);
-    }
+    let css = disable ? '' : generateCombinedCSS();
     customCSS.preview.replace(css);
 }
 
 function updateCustomStyles(disable = false)
 {
-    for (style of ['general', 'light', 'dark']) {
-        let css = '';
-        if (!disable) {
-            css = compileCSSFromInput(customStyleValues[style]);
-            if (style !== 'general') {
-                css = '@media (prefers-color-scheme: ' + style + '){' + css + '}';
+    if (currentStyle !== 'general')
+        customCSS.selected.replace(generateCombinedCSS());
+    else {
+        customCSS.selected.replace('');
+
+        for (style of ['general', 'light', 'dark']) {
+            let css = '';
+            if (!disable) {
+                css = compileCSSFromInput(customStyleValues[style]);
+                if (style !== 'general') {
+                    css = '@media (prefers-color-scheme: ' + style + '){' + css + '}';
+                }
             }
+            customCSS[style].replace(css);
         }
-        customCSS[style].replace(css);
     }
 }
 

@@ -15,14 +15,14 @@
     --selection-inline-part-color: transparent;
 
     --text-font: 'OpenSans';
-    --text-color: black;
+    --text-color: unset;
     --link-color: #057EAE;
-    --background: white;
+    --background: unset;
 
     --heading-border-color: #8883;
     --quote-border-color: #8889;
     --code-font: 'Courier New', Courier, monospace;
-    --code-color: black;
+    --code-color: unset;
     --code-border-color: #8882;
     --code-background-color: #8881;
     --hr-color: #8883;
@@ -407,6 +407,11 @@ body.settings-visible {
     border: 1px solid #8883;
     box-shadow: 3pt 3pt 10pt #8886;
 }
+#settings #list [id^="settings-info"] {
+    color: #888;
+    text-align: center;
+    margin-bottom: 20pt;
+}
 #settings #list .row {
     margin: 5pt 0;
     text-align: center;
@@ -430,6 +435,8 @@ body.settings-visible {
 #settings #list .preview {
     width: 10pt;
     height: 10pt;
+    border: 1px solid #8881;
+    border-radius: 5pt;
 }
 #settings #list .value {
     color: var(--text-color);
