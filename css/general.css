@@ -279,12 +279,18 @@ textarea:focus {
 #display span.strike {
     text-decoration: line-through;
 }
-#display span.code {
+#display span.code, #display span.math {
     font-family: monospace;
     border: 1px solid var(--code-border-color);
     padding: 2pt 5pt;
     color: var(--code-color);
     background: var(--code-background-color);
+}
+#display span.math {
+    display: none;
+}
+#display .current span.math {
+    display: inline;
 }
 
 #display .right a.link {

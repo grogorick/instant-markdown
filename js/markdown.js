@@ -17,6 +17,10 @@ let formats = {
     inline: {
         code: [
             { pattern: /((^|[^`\\])`)([^`]|$)/, toggle: true }],
+        math: [
+            { pattern: /((^|\s)(\$))\S/, start: true },
+            { pattern: /(\S\$)\S/, toggle: true },
+            { pattern: /(\S(\$))(\s|$)/, end: true }],
         bold: [
             { pattern: /((^|\s)(\*\*|__))\S/, start: true, count: 2 },
             { pattern: /(\S(\*\*|__))\S/, toggle: true, count: 2 },
@@ -255,6 +259,21 @@ function updateMarkdown()
                         spanRight.appendChild(spanPart);
                         part.htmlTag = spanPart;
                         setupClick(part);
+
+                        if (part.classList.includes(formats.inline.math[0].className)) {
+                            let spanPart = document.createElement('span');
+                            spanPart.className = 'math-render';
+                            if (part.text) {
+                                try {
+                                    katex.render(part.text, spanPart);
+                                } catch(err) {
+                                    spanPart.innerHTML = ' <i>(math syntax invalid)</i>';
+                                }
+                            }
+                            spanRight.appendChild(spanPart);
+                            renderPart = Object.assign({}, part, { htmlTag: spanPart });
+                            setupClick(renderPart);
+                        }
                     }
                     lineDiv.appendChild(spanRight);
                     line.right.htmlTag = spanRight;
@@ -342,7 +361,8 @@ function detectInlineFormats(text, position, classList = new Set())
     while (true) {
         let next = null;
         for (let format of inlineFormats) {
-            if (format.className !== formats.inline.code[0].className && classList.has(formats.inline.code[0].className)) {
+            if ((format.className !== formats.inline.code[0].className && classList.has(formats.inline.code[0].className)) ||
+                (format.className !== formats.inline.math[0].className && classList.has(formats.inline.math[0].className))) {
                 continue;
             }
             let tmp = text.match(format.pattern);
