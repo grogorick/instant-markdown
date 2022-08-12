@@ -10,6 +10,7 @@ let formats = {
         h6:     { pattern: /^(\s{0,3}######(\s|$))(.*$)/, match: match13, classes: ['heading'] },
         quote:  { pattern: /^(\s{0,3}>)($|\s*.*$)/, multiline: true, outerTag: 'div' },
         code:   { pattern: /^(\s{0,3}(`{3,}|~{3,}))($|\s*.*$)/, match: match13, outerTag: 'code' },
+        math:   { pattern: /^(\$\$)($|\s*.*$)/, outerTag: 'code' },
         ul:     { pattern: /^((-|\+|\*)(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li', classes: ['list'] },
         ol:     { pattern: /^(\d+(\.|\))(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ol', innerTag: 'li', classes: ['list'] },
         hr:     { pattern: /^(\s*((\*\s*){3,}|(-\s*){3,}|(_\s*){3,}))()$/, match: { l: 1, r: 6 }, innerTag: 'div' }
@@ -101,6 +102,18 @@ function updateMarkdown()
     let newSection = values => Object.assign({ pos: position, blankLinesPos: position, format: formats.line.default, content: [], blankLines: [] }, values);
     let lines = input.value.split('\n');
 
+    let renderMath = (texCode, targetTag) => {
+        if (!texCode)
+            targetTag.innerHTML = '';
+        else {
+            try {
+                katex.render(texCode, targetTag);
+            } catch(err) {
+                targetTag.innerHTML = ' <i>(math syntax invalid)</i>';
+            }
+        }
+    };
+
     // parse input text to get sections with line formats
     let startNewSection = true;
     lines.forEach(lineText =>
@@ -121,8 +134,10 @@ function updateMarkdown()
         line.right.text = lineFormatMatch.match.r;
         line.right.pos += line.left.text.length;
 
-        // code section
         let prevIsCode = prevFormat && prevFormat === formats.line.code;
+        let prevIsMath = prevFormat && prevFormat === formats.line.math;
+
+        // code section
         let isMatchingCodeEnd = () =>
             (!lineFormatMatch.match.r.trim().length) &&
             (line.text.trim().startsWith(sections.last().content[0][0].left.text.trim()));
@@ -138,6 +153,22 @@ function updateMarkdown()
             }
         }
         else if (prevIsCode && !prevSection.finished) {
+            prevSection.content.push([prepareLine()]);
+            prevSection.blankLinesPos = nextPosition;
+        }
+
+        // math block
+        else if (lineFormatMatch.format === formats.line.math) {
+            if (!prevIsMath)
+                sections.push(newSection({ format: lineFormatMatch.format, content: [[line]], blankLinesPos: nextPosition }));
+            else {
+                prevSection.content.push([line]);
+                prevSection.finished = true;
+                startNewSection = true;
+                prevSection.blankLinesPos = nextPosition;
+            }
+        }
+        else if (prevIsMath && !prevSection.finished) {
             prevSection.content.push([prepareLine()]);
             prevSection.blankLinesPos = nextPosition;
         }
@@ -206,6 +237,8 @@ function updateMarkdown()
         let format = section.format;
         section.htmlTag = document.createElement('div');
         format.classes.forEach(className => section.htmlTag.classList.add(className));
+        section.rawLines = section.content.map(v => v[0]).map(v => v.text);
+        section.rawContent = section.rawLines.concat(section.blankLines.map(v => v.text)).join('\n');
 
         if (section.content.length) {
             let container = section.htmlTag;
@@ -229,7 +262,7 @@ function updateMarkdown()
                     setupClick(line.left);
 
                     line.right.parts = [];
-                    if (format == formats.line.code) {
+                    if (format == formats.line.code || format == formats.line.math) {
                         line.right.parts.push({ text: line.right.text, pos: line.right.pos, classList: [] });
                     }
                     else {
@@ -262,17 +295,10 @@ function updateMarkdown()
 
                         if (part.classList.includes(formats.inline.math[0].className)) {
                             let spanPart = document.createElement('span');
-                            spanPart.className = 'math-render';
-                            if (part.text) {
-                                try {
-                                    katex.render(part.text, spanPart);
-                                } catch(err) {
-                                    spanPart.innerHTML = ' <i>(math syntax invalid)</i>';
-                                }
-                            }
                             spanRight.appendChild(spanPart);
-                            renderPart = Object.assign({}, part, { htmlTag: spanPart });
-                            setupClick(renderPart);
+                            spanPart.className = 'math-render';
+                            renderMath(part.text, spanPart);
+                            setupClick(Object.assign({}, part, { htmlTag: spanPart }));
                         }
                     }
                     lineDiv.appendChild(spanRight);
@@ -287,6 +313,14 @@ function updateMarkdown()
                 }
                 container.appendChild(tag);
                 section.content[c] = { lines: lines, htmlTag: tag, pos: lines[0].pos };
+            }
+            if (format == formats.line.math) {
+                let renderTag = document.createElement('div');
+                section.htmlTag.appendChild(renderTag);
+                renderTag.className = 'math-render';
+                let tex = section.rawLines.slice(1, -1).join('\n');
+                renderMath(tex, renderTag);
+                setupClick({ htmlTag: renderTag, pos: section.blankLinesPos - 1 });
             }
         }
         if (section.blankLines.length) {
@@ -332,7 +366,7 @@ function setupClick(el)
     el.htmlTag.addEventListener('click', e =>
     {
         e.stopPropagation();
-        setSelection(el.pos + el.text.length);
+        setSelection(el.pos + (el.text?.length ?? 0));
         input.focus();
     });
 }

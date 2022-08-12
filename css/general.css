@@ -210,28 +210,51 @@ textarea:focus {
     padding-left: 15pt;
 }
 
-#display .code code span.right {
+#display .math code {
+    display: none;
+}
+#display .math code+div {
+    padding-left: var(--format-width);
+}
+#display .math.current code+div {
+    padding-left: 10pt;
+}
+#display .math.current code,
+#display .math.current code+div {
+    display: inline-block;
+    width: 50%;
+    max-width: 50%;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+#display .code code span.right,
+#display .math code span.right {
     border-left: 1px solid var(--code-border-color);
     border-right: 1px solid var(--code-border-color);
     padding: 0 5pt;
     color: var(--code-color);
     background: var(--code-background-color);
 }
-#display .code code p:first-child span.right {
+#display .code code p:first-child span.right,
+#display .math code p:first-child span.right {
     font-family: var(--code-font);
     color: var(--inline-format-color);
 }
 #display .code code p:first-child span.right,
-#display .code code p:last-child span.right {
+#display .code code p:last-child span.right,
+#display .math code p:first-child span.right,
+#display .math code p:last-child span.right {
     border: none;
     padding: 0;
     background: none;
 }
-#display .code code p:nth-child(2) span.right {
+#display .code code p:nth-child(2) span.right,
+#display .math code p:nth-child(2) span.right {
     border-top: 1px solid var(--code-border-color);
     padding-top: 5pt;
 }
-#display .code code p:nth-last-child(2) span.right {
+#display .code code p:nth-last-child(2) span.right,
+#display .math code p:nth-last-child(2) span.right {
     border-bottom: 1px solid var(--code-border-color);
     padding-bottom: 5pt;
 }
