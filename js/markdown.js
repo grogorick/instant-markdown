@@ -11,7 +11,7 @@ let formats = {
         quote:  { pattern: /^(\s{0,3}>)($|\s*.*$)/, multiline: true, outerTag: 'div' },
         code:   { pattern: /^(\s{0,3}(`{3,}|~{3,}))($|\s*.*$)/, match: match13, outerTag: 'code' },
         ul:     { pattern: /^((-|\+|\*)(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ul', innerTag: 'li', classes: ['list'] },
-        ol:     { pattern: /^(\d+(.|\))(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ol', innerTag: 'li', classes: ['list'] },
+        ol:     { pattern: /^(\d+(\.|\))(\s|$))(.*$)/, match: { l: 1, r: 4 }, multiline: true, listItem: true, outerTag: 'ol', innerTag: 'li', classes: ['list'] },
         hr:     { pattern: /^(\s*((\*\s*){3,}|(-\s*){3,}|(_\s*){3,}))()$/, match: { l: 1, r: 6 }, innerTag: 'div' }
     },
     inline: {
