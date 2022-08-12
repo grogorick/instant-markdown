@@ -23,6 +23,8 @@ Give it a try at https://markdown.grogorick.de
 - Code sections  
 ` ``` code secion ``` `  
 `~~~ code secion ~~~`
+- Math mode  
+`$$ LaTeX block $$`
 - Horizontal rule  
 `***` or `---` or `___`
 
@@ -31,6 +33,7 @@ Give it a try at https://markdown.grogorick.de
 - *Italic* or _italic_
 - ~~Strikethrough~~
 - `Code`
+- $\LaTeX$
 - [Links](https://github.com/grogorick/instant-markdown)
 - ![Images](https://raw.githubusercontent.com/grogorick/instant-markdown/master/favicon.png)
 - \`Escaped \*formatting \#characters
